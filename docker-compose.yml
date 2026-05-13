@@ -62,4 +62,3 @@ volumes:
 networks:
   gestion-retours-network:
     driver: bridge
-    driver: bridge
