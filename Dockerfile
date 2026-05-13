@@ -1,28 +1,39 @@
-# Stage 1: Build
+# Stage 1: Build avec Maven
 FROM maven:3.9-eclipse-temurin-17 AS builder
-WORKDIR /app
+WORKDIR /build
 COPY pom.xml .
 RUN mvn dependency:resolve
 COPY . .
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -q
 
-# Stage 2: Runtime
+# Stage 2: Runtime optimisé
 FROM eclipse-temurin:17-jre-alpine
+LABEL maintainer="GestionRetours Team"
+LABEL version="1.0.0"
+LABEL description="API Backend - Gestion des Retours Produits"
+
 WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
+RUN addgroup -g 1000 appuser && adduser -D -u 1000 -G appuser appuser
+
+# Copy JAR from builder
+COPY --from=builder --chown=appuser:appuser /build/target/*.jar app.jar
 
 # Expose port
 EXPOSE 8080
 
-# Environment variables
-ENV SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/gestion_retours?useSSL=false&serverTimezone=UTC
-ENV SPRING_DATASOURCE_USERNAME=root
-ENV SPRING_DATASOURCE_PASSWORD=root
-ENV SPRING_JPA_HIBERNATE_DDL_AUTO=update
+# Environment variables - defaults for development
+ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC"
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV SPRING_APPLICATION_NAME=Backend_Projet
+ENV SERVER_PORT=8080
+ENV SERVER_SERVLET_CONTEXT_PATH=/api
+
+# Switch to non-root user
+USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8080/api/swagger-ui.html || exit 1
+  CMD curl -f http://localhost:8080/api/v3/api-docs || exit 1
 
 # Run application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]

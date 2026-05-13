@@ -2,13 +2,14 @@ version: '3.9'
 
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0-alpine
     container_name: gestion-retours-mysql
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: gestion_retours
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin123
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-gestion_retours}
+      MYSQL_USER: ${DB_USER:-admin}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-admin123}
     ports:
       - "3306:3306"
     volumes:
@@ -16,20 +17,30 @@ services:
     networks:
       - gestion-retours-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-admin}", "-p${DB_PASSWORD:-admin123}"]
       timeout: 5s
       retries: 10
+      start_period: 20s
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: gestion-retours-backend
+    restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/gestion_retours?useSSL=false&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${DB_NAME:-gestion_retours}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-admin123}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      SERVER_SERVLET_CONTEXT_PATH: /api
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_ITBS_RETOUR: DEBUG
     ports:
       - "8080:8080"
     depends_on:
@@ -38,9 +49,11 @@ services:
     networks:
       - gestion-retours-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/swagger-ui.html"]
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v3/api-docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
 volumes:
   mysql_data:
@@ -48,4 +61,5 @@ volumes:
 
 networks:
   gestion-retours-network:
+    driver: bridge
     driver: bridge
