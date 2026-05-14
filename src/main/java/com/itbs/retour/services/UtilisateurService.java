@@ -20,10 +20,9 @@ public class UtilisateurService {
         return utilisateurRepo.findAll();
     }
 
-    // ✅ méthode manquante ajoutée
     public Utilisateur trouverParId(int id) {
         return utilisateurRepo.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé avec l'id : " + id));
     }
 
     public List<Utilisateur> trouverParRole(Role role) {
@@ -37,7 +36,7 @@ public class UtilisateurService {
     public ResponseEntity<String> supprimerUtilisateur(int id) {
         utilisateurRepo.findById(id).ifPresentOrElse(
             u -> { utilisateurRepo.delete(u); },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé avec l'id : " + id); }
         );
         return ResponseEntity.ok("Utilisateur supprimé avec succès");
     }
@@ -50,7 +49,7 @@ public class UtilisateurService {
                 u.setRole(utilisateur.getRole());
                 utilisateurRepo.save(u);
             },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur non trouvé avec l'id : " + id); }
         );
         return ResponseEntity.ok("Utilisateur mis à jour avec succès");
     }

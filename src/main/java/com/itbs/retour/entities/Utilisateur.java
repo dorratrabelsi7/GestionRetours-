@@ -1,7 +1,7 @@
 package com.itbs.retour.entities;
 
 import java.util.List;
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Data;
 
 @Entity

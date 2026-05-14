@@ -22,7 +22,7 @@ public class NonConformiteService {
 
     public NonConformite trouverParId(int id) {
         return nonConformiteRepo.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Non-conformité non trouvée"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Non-conformité non trouvée avec l'id : " + id));
     }
 
     public List<NonConformite> trouverParGravite(Gravite gravite) {
@@ -40,7 +40,7 @@ public class NonConformiteService {
     public ResponseEntity<String> supprimerNonConformite(int id) {
         nonConformiteRepo.findById(id).ifPresentOrElse(
             nc -> { nonConformiteRepo.delete(nc); },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Non-conformité non trouvée"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Non-conformité non trouvée avec l'id : " + id); }
         );
         return ResponseEntity.ok("Non-conformité supprimée avec succès");
     }
@@ -53,7 +53,7 @@ public class NonConformiteService {
                 nc.setDate(nonConformite.getDate());
                 nonConformiteRepo.save(nc);
             },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Non-conformité non trouvée"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Non-conformité non trouvée avec l'id : " + id); }
         );
         return ResponseEntity.ok("Non-conformité mise à jour avec succès");
     }

@@ -23,7 +23,7 @@ public class RetourProduitService {
 
     public RetourProduit trouverRetourParId(int id) {
         return retourRepo.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé avec l'id : " + id));
     }
 
     public List<RetourProduit> trouverParEtat(EtatTraitement etat) {
@@ -45,7 +45,7 @@ public class RetourProduitService {
     public ResponseEntity<String> supprimerRetour(int id) {
         retourRepo.findById(id).ifPresentOrElse(
             r -> { retourRepo.delete(r); },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé avec l'id : " + id); }
         );
         return ResponseEntity.ok("Retour supprimé avec succès");
     }
@@ -59,7 +59,7 @@ public class RetourProduitService {
                 r.setDate(retour.getDate());
                 retourRepo.save(r);
             },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé avec l'id : " + id); }
         );
         return ResponseEntity.ok("Retour mis à jour avec succès");
     }
@@ -70,7 +70,7 @@ public class RetourProduitService {
                 r.setEtatTraitement(EtatTraitement.VALIDE);
                 retourRepo.save(r);
             },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé avec l'id : " + id); }
         );
         return ResponseEntity.ok("Retour validé avec succès");
     }
@@ -81,7 +81,7 @@ public class RetourProduitService {
                 r.setEtatTraitement(EtatTraitement.REJETE);
                 retourRepo.save(r);
             },
-            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé"); }
+            () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouvé avec l'id : " + id); }
         );
         return ResponseEntity.ok("Retour rejeté");
     }
