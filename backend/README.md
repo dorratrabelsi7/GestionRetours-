@@ -61,16 +61,27 @@ URLs locales :
 
 ## Lancement local sans Docker
 
-Creer une base MySQL :
+Creer la base et l'utilisateur MySQL :
 
 ```sql
 CREATE DATABASE gestion_retours;
+CREATE USER IF NOT EXISTS 'admin'@'localhost' IDENTIFIED BY 'admin123';
+GRANT ALL PRIVILEGES ON gestion_retours.* TO 'admin'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
-Configurer `src/main/resources/application.properties`, puis lancer :
+Le backend utilise MySQL par defaut avec ces valeurs :
+
+```text
+spring.datasource.url=jdbc:mysql://localhost:3306/gestion_retours
+spring.datasource.username=admin
+spring.datasource.password=admin123
+```
+
+Puis lancer :
 
 ```bash
-mvn spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
 ## Deploiement backend sur GCP

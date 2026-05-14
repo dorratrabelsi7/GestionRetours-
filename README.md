@@ -57,6 +57,12 @@ URLs :
 - Backend API : `http://localhost:8080/api`
 - Swagger : `http://localhost:8080/api/swagger-ui.html`
 
+Docker Compose lance automatiquement MySQL avec :
+
+- Base : `gestion_retours`
+- User : `admin`
+- Password : `admin123`
+
 Endpoints principaux :
 
 - Retours : `/api/retours`
@@ -93,6 +99,15 @@ Technologies :
 - Nginx pour l'image Docker de production
 
 En developpement local sans Docker :
+
+```bash
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+
+Le backend utilise MySQL par defaut sur `localhost:3306`.
+
+Dans un autre terminal :
 
 ```bash
 cd frontend
