@@ -16,6 +16,9 @@ param(
 # Keep PowerShell from treating those messages as terminating errors.
 $ErrorActionPreference = "Continue"
 
+$BackendDir = Split-Path $PSScriptRoot -Parent
+Push-Location $BackendDir
+
 $ServiceName = "gestion-retours-backend"
 $InstanceName = "gestion-retours-mysql"
 $DbName = "gestion_retours"
@@ -142,3 +145,5 @@ Write-Host "API:        $ServiceUrl/api"
 Write-Host "Swagger:    $ServiceUrl/api/swagger-ui.html"
 Write-Host "OpenAPI:    $ServiceUrl/api/v3/api-docs"
 Write-Host "Cloud SQL:  $ConnectionName"
+
+Pop-Location

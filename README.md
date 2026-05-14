@@ -1,151 +1,98 @@
-# Systeme de gestion des retours produits
+# GestionRetours
 
-Sujet 6 - Application web de gestion des retours produits et des non-conformites.
+Application web pour le sujet 6 : systeme de gestion des retours produits.
 
-Ce repository contient le backend Spring Boot. Le frontend Angular doit rester dans un projet separe, par exemple `gestion-retours-frontend`, puis consommer cette API via son URL Cloud Run.
-
-## Technologies
-
-- Java 11, compatible avec l'image Docker Java 17
-- Spring Boot 2.7.14
-- Spring Web, Spring Data JPA, Spring Validation
-- MySQL 8
-- Swagger/OpenAPI avec springdoc-openapi
-- Docker et Docker Compose
-- Google Cloud Run + Cloud SQL MySQL
-
-## Architecture backend
+Le repository est organise en monorepo avec deux applications separees :
 
 ```text
-src/main/java/com/itbs/retour
-  config/        Configuration Spring Security et OpenAPI
-  controllers/   API REST
-  dto/           DTO avec validation Spring Validator
-  entities/      Entites JPA
-  repositories/  Acces base de donnees
-  services/      Logique metier
-  convertors/    Conversion Entity <-> DTO
+GestionRetours-/
+  backend/             API REST Spring Boot
+  frontend/            Interface Angular
+  docker-compose.yml   Lancement local backend + frontend + MySQL
+  README.md            Documentation globale
 ```
 
-Entites demandees par l'enonce :
+## Architecture
 
-- `RetourProduit` : id, produit, client, raison, etatTraitement, date
-- `NonConformite` : id, description, gravite, date, retour/produit
-- `Utilisateur` : id, nom, email, role
-- `HistoriqueRetour` : id, retour, action, employe, date
+```text
+Angular frontend
+  -> REST HTTP
+Spring Boot backend
+  -> JDBC
+MySQL / Cloud SQL
+```
 
-Fonctionnalites presentes :
+En local, Docker Compose lance :
 
-- CRUD des retours, utilisateurs, non-conformites et historiques
-- Suivi des retours par etat, client et periode
-- Validation/rejet des retours par le service qualite
-- Documentation Swagger/OpenAPI
-- Validation des donnees avec `@Valid`, `@NotBlank`, `@NotNull`, `@Email`, `@Size`
+- `mysql` : base MySQL 8
+- `backend` : API Spring Boot sur `http://localhost:8080/api`
+- `frontend` : Angular servi par Nginx sur `http://localhost:4200`
 
-Point restant a enrichir pour une defense plus forte : la mise a jour du stock est mentionnee dans l'enonce, mais il n'existe pas encore d'entite `Stock` ou `ProduitStock`. Actuellement le retour garde seulement le nom du produit.
+Sur GCP, les services restent separes mais dans le meme projet :
 
-## Lancement local avec Docker
+- Projet GCP : `gestionretours-496316`
+- Numero projet : `984806313426`
+- Backend : Cloud Run `gestion-retours-backend`
+- Frontend : Cloud Run `gestion-retours-frontend`
+- Base de donnees : Cloud SQL MySQL `gestion-retours-mysql`
+
+## Lancer en local
 
 ```bash
 docker compose up --build
 ```
 
-URLs locales :
+URLs :
 
-- API : `http://localhost:8080/api`
+- Frontend : `http://localhost:4200`
+- Backend API : `http://localhost:8080/api`
 - Swagger : `http://localhost:8080/api/swagger-ui.html`
-- OpenAPI JSON : `http://localhost:8080/api/v3/api-docs`
-- MySQL : `localhost:3306`, base `gestion_retours`, user `admin`, password `admin123`
 
-## Lancement local sans Docker
+## Backend
 
-Creer une base MySQL :
+Le backend est dans `backend/`.
 
-```sql
-CREATE DATABASE gestion_retours;
-```
+Technologies :
 
-Configurer `src/main/resources/application.properties`, puis lancer :
+- Java 11
+- Spring Boot 2.7.14
+- Spring Web
+- Spring Data JPA
+- Spring Validation
+- MySQL
+- Swagger/OpenAPI
+- Docker
+
+Documentation detaillee : `backend/README.md`
+
+## Frontend
+
+Le frontend est dans `frontend/`.
+
+Technologies :
+
+- Angular
+- TypeScript
+- Nginx pour l'image Docker de production
+
+En developpement local sans Docker :
 
 ```bash
-mvn spring-boot:run
+cd frontend
+npm install
+npm start
 ```
 
-## Deploiement backend sur GCP
+## Deploiement GCP
 
-Projet GCP :
-
-- Project ID : `gestionretours-496316`
-- Project number : `984806313426`
-- Region par defaut : `europe-west1`
-
-Prérequis :
-
-- Google Cloud SDK installe
-- `gcloud auth login`
-- Facturation activee sur le projet GCP
-
-Commande Windows PowerShell :
+Le script racine deploie le backend, le frontend et Cloud SQL dans le meme projet GCP :
 
 ```powershell
-.\deploy\deploy_cloudrun.ps1 `
+.\deploy_gcp_all.ps1 `
   -ProjectId gestionretours-496316 `
   -ProjectNumber 984806313426 `
   -Region europe-west1 `
   -DbPassword "admin123"
 ```
 
-Le script :
-
-- active les APIs necessaires
-- cree/verifie Cloud SQL MySQL
-- cree la base `gestion_retours`
-- cree/met a jour l'utilisateur `admin`
-- donne le role `Cloud SQL Client` au service account Cloud Run
-- construit l'image Docker avec Cloud Build
-- deploie le backend sur Cloud Run avec le profil `gcp`
-
-## Endpoints principaux
-
-```text
-GET    /api/retours
-GET    /api/retours/{id}
-POST   /api/retours/add
-PUT    /api/retours/update/{id}
-PUT    /api/retours/valider/{id}
-PUT    /api/retours/rejeter/{id}
-DELETE /api/retours/delete/{id}
-
-GET    /api/nonconformites
-POST   /api/nonconformites/add
-PUT    /api/nonconformites/update/{id}
-DELETE /api/nonconformites/delete/{id}
-
-GET    /api/utilisateurs
-POST   /api/utilisateurs/add
-PUT    /api/utilisateurs/update/{id}
-DELETE /api/utilisateurs/delete/{id}
-
-GET    /api/historiques
-POST   /api/historiques/add
-DELETE /api/historiques/delete/{id}
-```
-
-## Frontend Angular separe
-
-Pour respecter l'enonce, le frontend doit etre livre dans un projet Angular separe. Exemple attendu :
-
-```text
-gestion-retours-frontend/
-  src/
-  angular.json
-  Dockerfile
-```
-
-Dans Angular, l'URL API doit pointer vers :
-
-```text
-https://URL_CLOUD_RUN/api
-```
-
-Le backend accepte deja `http://localhost:4200` pour le developpement Angular local.
+Le frontend est deploye comme un service Cloud Run separe. Il consomme l'URL publique du backend.

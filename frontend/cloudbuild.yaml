@@ -1,0 +1,11 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - API_URL=${_API_URL}
+      - -t
+      - gcr.io/$PROJECT_ID/gestion-retours-frontend:1.0.0
+      - .
+images:
+  - gcr.io/$PROJECT_ID/gestion-retours-frontend:1.0.0

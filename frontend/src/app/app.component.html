@@ -1,0 +1,110 @@
+<main class="layout">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Sujet 6</p>
+      <h1>Gestion des retours produits</h1>
+    </div>
+    <a class="swagger" href="https://gestion-retours-backend-984806313426.europe-west1.run.app/api/swagger-ui.html" target="_blank" rel="noreferrer">
+      Swagger
+    </a>
+  </header>
+
+  <section class="status" *ngIf="message || loading">
+    <span *ngIf="loading">Chargement...</span>
+    <span *ngIf="message">{{ message }}</span>
+  </section>
+
+  <section class="panel">
+    <div class="panel-title">
+      <h2>Retours produits</h2>
+      <button type="button" (click)="refresh()">Actualiser</button>
+    </div>
+
+    <form class="form-grid" (ngSubmit)="createRetour()">
+      <input name="produit" [(ngModel)]="retourForm.produit" placeholder="Produit" required minlength="3">
+      <input name="raison" [(ngModel)]="retourForm.raison" placeholder="Raison du retour" required minlength="5">
+      <select name="etatTraitement" [(ngModel)]="retourForm.etatTraitement">
+        <option value="EN_ATTENTE">EN_ATTENTE</option>
+        <option value="VALIDE">VALIDE</option>
+        <option value="REJETE">REJETE</option>
+      </select>
+      <input type="date" name="dateRetour" [(ngModel)]="retourForm.date" required>
+      <button type="submit">Ajouter</button>
+    </form>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Produit</th>
+            <th>Raison</th>
+            <th>Etat</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let retour of retours">
+            <td>{{ retour.id }}</td>
+            <td>{{ retour.produit }}</td>
+            <td>{{ retour.raison }}</td>
+            <td><span class="badge">{{ retour.etatTraitement }}</span></td>
+            <td>{{ retour.date }}</td>
+            <td class="actions">
+              <button type="button" (click)="validateRetour(retour)">Valider</button>
+              <button type="button" (click)="rejectRetour(retour)">Rejeter</button>
+              <button type="button" class="danger" (click)="deleteRetour(retour)">Supprimer</button>
+            </td>
+          </tr>
+          <tr *ngIf="retours.length === 0">
+            <td colspan="6" class="empty">Aucun retour enregistre</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="grid">
+    <article class="panel">
+      <h2>Non-conformites</h2>
+      <form class="stack" (ngSubmit)="createNonConformite()">
+        <textarea name="description" [(ngModel)]="nonConformiteForm.description" placeholder="Description" required minlength="5"></textarea>
+        <select name="gravite" [(ngModel)]="nonConformiteForm.gravite">
+          <option value="MINEURE">MINEURE</option>
+          <option value="MOYENNE">MOYENNE</option>
+          <option value="CRITIQUE">CRITIQUE</option>
+        </select>
+        <input type="date" name="dateNc" [(ngModel)]="nonConformiteForm.date" required>
+        <button type="submit">Signaler</button>
+      </form>
+      <ul class="list">
+        <li *ngFor="let item of nonConformites">
+          <strong>{{ item.gravite }}</strong>
+          <span>{{ item.description }}</span>
+        </li>
+      </ul>
+    </article>
+
+    <article class="panel">
+      <h2>Utilisateurs</h2>
+      <form class="stack" (ngSubmit)="createUtilisateur()">
+        <input name="nom" [(ngModel)]="utilisateurForm.nom" placeholder="Nom" required minlength="3">
+        <input type="email" name="email" [(ngModel)]="utilisateurForm.email" placeholder="Email" required>
+        <select name="role" [(ngModel)]="utilisateurForm.role">
+          <option value="CLIENT">CLIENT</option>
+          <option value="EMPLOYE">EMPLOYE</option>
+          <option value="QUALITE">QUALITE</option>
+          <option value="ADMIN">ADMIN</option>
+        </select>
+        <button type="submit">Ajouter</button>
+      </form>
+      <ul class="list">
+        <li *ngFor="let user of utilisateurs">
+          <strong>{{ user.role }}</strong>
+          <span>{{ user.nom }} - {{ user.email }}</span>
+        </li>
+      </ul>
+    </article>
+  </section>
+</main>

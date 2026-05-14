@@ -23,7 +23,7 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: gestion-retours-backend
     restart: unless-stopped
@@ -52,6 +52,22 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        API_URL: http://localhost:8080/api
+    container_name: gestion-retours-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - gestion-retours-network
 
 volumes:
   mysql_data:
