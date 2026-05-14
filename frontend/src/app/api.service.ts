@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 
+export type Role = 'ADMIN' | 'QUALITE' | 'EMPLOYE' | 'CLIENT';
+
 export interface RetourProduit {
   id?: number;
   produit: string;
@@ -28,7 +30,8 @@ export interface Utilisateur {
   id?: number;
   nom: string;
   email: string;
-  role: 'ADMIN' | 'QUALITE' | 'EMPLOYE' | 'CLIENT';
+  motDePasse?: string;
+  role: Role;
 }
 
 export interface HistoriqueRetour {
@@ -48,11 +51,24 @@ export interface ProduitStock {
   quantiteRetournee: number;
 }
 
+export interface LoginRequest {
+  email: string;
+  motDePasse: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly apiUrl = environment.apiUrl;
 
   constructor(private readonly http: HttpClient) {}
+
+  login(payload: LoginRequest): Observable<Utilisateur> {
+    return this.http.post<Utilisateur>(`${this.apiUrl}/auth/login`, payload);
+  }
+
+  signup(payload: Utilisateur): Observable<Utilisateur> {
+    return this.http.post<Utilisateur>(`${this.apiUrl}/auth/signup`, payload);
+  }
 
   getRetours(): Observable<RetourProduit[]> {
     return this.http.get<RetourProduit[]>(`${this.apiUrl}/retours`);

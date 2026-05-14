@@ -30,6 +30,15 @@ public class UtilisateurService {
     }
 
     public void ajouterUtilisateur(Utilisateur utilisateur) {
+        utilisateurRepo.findByEmailIgnoreCase(utilisateur.getEmail()).ifPresent(existing -> {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cet email existe deja");
+        });
+        if (utilisateur.getRole() == Role.ADMIN && utilisateurRepo.existsByRole(Role.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Un administrateur existe deja");
+        }
+        if (utilisateur.getMotDePasse() == null || utilisateur.getMotDePasse().isBlank()) {
+            utilisateur.setMotDePasse("password");
+        }
         utilisateurRepo.save(utilisateur);
     }
 
@@ -46,6 +55,9 @@ public class UtilisateurService {
             u -> {
                 u.setNom(utilisateur.getNom());
                 u.setEmail(utilisateur.getEmail());
+                if (utilisateur.getMotDePasse() != null && !utilisateur.getMotDePasse().isBlank()) {
+                    u.setMotDePasse(utilisateur.getMotDePasse());
+                }
                 u.setRole(utilisateur.getRole());
                 utilisateurRepo.save(u);
             },
