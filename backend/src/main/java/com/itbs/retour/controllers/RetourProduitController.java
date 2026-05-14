@@ -14,6 +14,7 @@ import com.itbs.retour.dto.RetourProduitDTO;
 import com.itbs.retour.entities.RetourProduit;
 import com.itbs.retour.entities.EtatTraitement;
 import com.itbs.retour.services.RetourProduitService;
+import com.itbs.retour.repositories.UtilisateurRepository;
 import com.itbs.retour.convertors.RetourProduitConvertor;
 
 @RestController
@@ -25,6 +26,9 @@ public class RetourProduitController {
 
     @Autowired
     private RetourProduitConvertor retourConvert;
+
+    @Autowired
+    private UtilisateurRepository utilisateurRepo;
 
     @GetMapping("/retours")
     @Operation(summary = "Récupérer tous les retours")
@@ -70,10 +74,15 @@ public class RetourProduitController {
         RetourProduit retour = new RetourProduit();
         retour.setProduit(retourDto.getProduit());
         retour.setRaison(retourDto.getRaison());
+        retour.setQuantite(retourDto.getQuantite());
         retour.setEtatTraitement(retourDto.getEtatTraitement());
         retour.setDate(retourDto.getDate());
-        retourServ.enregistrerRetour(retour);
-        return ResponseEntity.status(HttpStatus.CREATED).body(retourConvert.toDto(retour));
+        if (retourDto.getClientId() != null) {
+            retour.setClient(utilisateurRepo.findById(retourDto.getClientId())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Client non trouve")));
+        }
+        RetourProduit saved = retourServ.enregistrerRetour(retour);
+        return ResponseEntity.status(HttpStatus.CREATED).body(retourConvert.toDto(saved));
     }
 
     @PutMapping("/retours/update/{id}")
@@ -84,6 +93,7 @@ public class RetourProduitController {
         RetourProduit retour = new RetourProduit();
         retour.setProduit(retourDto.getProduit());
         retour.setRaison(retourDto.getRaison());
+        retour.setQuantite(retourDto.getQuantite());
         retour.setEtatTraitement(retourDto.getEtatTraitement());
         retour.setDate(retourDto.getDate());
         return retourServ.mettreAjourRetour(id, retour);

@@ -2,6 +2,15 @@
 
 Application web pour le sujet 6 : systeme de gestion des retours produits.
 
+Fonctionnalites principales :
+
+- CRUD des retours produits, non-conformites, utilisateurs, historiques et stocks
+- 4 acteurs applicatifs : `ADMIN`, `QUALITE`, `EMPLOYE`, `CLIENT`
+- Enregistrement et suivi des retours avec client, quantite, etat et historique
+- Validation/rejet des retours par le service qualite
+- Mise a jour automatique du stock lorsqu'un retour est valide
+- Documentation Swagger/OpenAPI et validation Spring Validator
+
 Le repository est organise en monorepo avec deux applications separees :
 
 ```text
@@ -47,6 +56,14 @@ URLs :
 - Frontend : `http://localhost:4200`
 - Backend API : `http://localhost:8080/api`
 - Swagger : `http://localhost:8080/api/swagger-ui.html`
+
+Endpoints principaux :
+
+- Retours : `/api/retours`
+- Non-conformites : `/api/nonconformites`
+- Utilisateurs : `/api/utilisateurs`
+- Historiques : `/api/historiques`
+- Stock : `/api/stocks`
 
 ## Backend
 

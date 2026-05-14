@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.itbs.retour.dto.HistoriqueRetourDTO;
 import com.itbs.retour.entities.HistoriqueRetour;
+import com.itbs.retour.repositories.RetourProduitRepository;
+import com.itbs.retour.repositories.UtilisateurRepository;
 import com.itbs.retour.services.HistoriqueRetourService;
 import com.itbs.retour.convertors.HistoriqueRetourConvertor;
 
@@ -24,6 +26,12 @@ public class HistoriqueRetourController {
 
     @Autowired
     private HistoriqueRetourConvertor historiqueConvert;
+
+    @Autowired
+    private RetourProduitRepository retourRepo;
+
+    @Autowired
+    private UtilisateurRepository utilisateurRepo;
 
     @GetMapping("/historiques")
     @Operation(summary = "Récupérer tous les historiques")
@@ -69,6 +77,14 @@ public class HistoriqueRetourController {
         HistoriqueRetour historique = new HistoriqueRetour();
         historique.setAction(historiqueDto.getAction());
         historique.setDate(historiqueDto.getDate());
+        if (historiqueDto.getRetourId() != null) {
+            historique.setRetour(retourRepo.findById(historiqueDto.getRetourId())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouve")));
+        }
+        if (historiqueDto.getEmployeId() != null) {
+            historique.setEmploye(utilisateurRepo.findById(historiqueDto.getEmployeId())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Employe non trouve")));
+        }
         historiqueServ.enregistrerAction(historique);
         return ResponseEntity.status(HttpStatus.CREATED).body(historiqueConvert.toDto(historique));
     }

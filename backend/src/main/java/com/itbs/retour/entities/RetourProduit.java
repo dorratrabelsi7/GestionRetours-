@@ -15,6 +15,8 @@ public class RetourProduit {
 
     private String produit;
     private String raison;
+    private int quantite = 1;
+    private boolean stockMisAJour;
 
     @Enumerated(EnumType.STRING)
     private EtatTraitement etatTraitement;

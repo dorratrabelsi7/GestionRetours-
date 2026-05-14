@@ -16,7 +16,10 @@ public class RetourProduitConvertor {
 
     public RetourProduitDTO toDto(RetourProduit r) {
         RetourProduitDTO dto = mmapper.map(r, RetourProduitDTO.class);
-        dto.setNomClient(r.getClient().getNom());  // champ aplati
+        if (r.getClient() != null) {
+            dto.setClientId(r.getClient().getId());
+            dto.setNomClient(r.getClient().getNom());
+        }
         return dto;
     }
 

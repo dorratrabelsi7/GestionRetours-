@@ -51,6 +51,7 @@ public class NonConformiteService {
                 nc.setDescription(nonConformite.getDescription());
                 nc.setGravite(nonConformite.getGravite());
                 nc.setDate(nonConformite.getDate());
+                nc.setRetour(nonConformite.getRetour());
                 nonConformiteRepo.save(nc);
             },
             () -> { throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Non-conformité non trouvée avec l'id : " + id); }

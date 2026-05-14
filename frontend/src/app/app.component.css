@@ -32,6 +32,11 @@ h2 {
   font-size: 20px;
 }
 
+.subtitle {
+  color: #516070;
+  margin: 8px 0 0;
+}
+
 .swagger, button {
   border: 0;
   border-radius: 6px;
@@ -83,6 +88,10 @@ button:hover, .swagger:hover {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 16px;
+}
+
+.retour-form {
+  grid-template-columns: 1.2fr 1.5fr .7fr 1fr 1fr 1fr auto;
 }
 
 .stack {
@@ -141,6 +150,12 @@ th {
   gap: 8px;
 }
 
+.inline {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 7px 10px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -162,6 +177,14 @@ th {
   padding-top: 10px;
 }
 
+.list small {
+  color: #6b7785;
+}
+
+.compact-table {
+  margin-top: 14px;
+}
+
 .empty {
   color: #6b7785;
   text-align: center;
@@ -173,7 +196,7 @@ th {
     flex-direction: column;
   }
 
-  .form-grid, .grid {
+  .form-grid, .retour-form, .grid {
     grid-template-columns: 1fr;
   }
 

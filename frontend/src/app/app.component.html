@@ -3,6 +3,7 @@
     <div>
       <p class="eyebrow">Sujet 6</p>
       <h1>Gestion des retours produits</h1>
+      <p class="subtitle">Clients, service qualite, employes et administrateurs</p>
     </div>
     <a class="swagger" href="https://gestion-retours-backend-984806313426.europe-west1.run.app/api/swagger-ui.html" target="_blank" rel="noreferrer">
       Swagger
@@ -20,16 +21,21 @@
       <button type="button" (click)="refresh()">Actualiser</button>
     </div>
 
-    <form class="form-grid" (ngSubmit)="createRetour()">
+    <form class="form-grid retour-form" (ngSubmit)="saveRetour()">
       <input name="produit" [(ngModel)]="retourForm.produit" placeholder="Produit" required minlength="3">
       <input name="raison" [(ngModel)]="retourForm.raison" placeholder="Raison du retour" required minlength="5">
+      <input type="number" name="quantite" [(ngModel)]="retourForm.quantite" placeholder="Quantite" required min="1">
+      <select name="clientId" [(ngModel)]="retourForm.clientId">
+        <option [ngValue]="null">Client</option>
+        <option *ngFor="let client of clients" [ngValue]="client.id">{{ client.nom }}</option>
+      </select>
       <select name="etatTraitement" [(ngModel)]="retourForm.etatTraitement">
         <option value="EN_ATTENTE">EN_ATTENTE</option>
         <option value="VALIDE">VALIDE</option>
         <option value="REJETE">REJETE</option>
       </select>
       <input type="date" name="dateRetour" [(ngModel)]="retourForm.date" required>
-      <button type="submit">Ajouter</button>
+      <button type="submit">{{ retourForm.id ? 'Modifier' : 'Ajouter' }}</button>
     </form>
 
     <div class="table-wrap">
@@ -38,9 +44,12 @@
           <tr>
             <th>ID</th>
             <th>Produit</th>
+            <th>Client</th>
             <th>Raison</th>
+            <th>Qté</th>
             <th>Etat</th>
             <th>Date</th>
+            <th>Stock</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -48,17 +57,21 @@
           <tr *ngFor="let retour of retours">
             <td>{{ retour.id }}</td>
             <td>{{ retour.produit }}</td>
+            <td>{{ retour.nomClient || '-' }}</td>
             <td>{{ retour.raison }}</td>
+            <td>{{ retour.quantite }}</td>
             <td><span class="badge">{{ retour.etatTraitement }}</span></td>
             <td>{{ retour.date }}</td>
+            <td>{{ retour.stockMisAJour ? 'mis a jour' : '-' }}</td>
             <td class="actions">
+              <button type="button" (click)="editRetour(retour)">Editer</button>
               <button type="button" (click)="validateRetour(retour)">Valider</button>
               <button type="button" (click)="rejectRetour(retour)">Rejeter</button>
               <button type="button" class="danger" (click)="deleteRetour(retour)">Supprimer</button>
             </td>
           </tr>
           <tr *ngIf="retours.length === 0">
-            <td colspan="6" class="empty">Aucun retour enregistre</td>
+            <td colspan="9" class="empty">Aucun retour enregistre</td>
           </tr>
         </tbody>
       </table>
@@ -67,12 +80,51 @@
 
   <section class="grid">
     <article class="panel">
+      <h2>Stock produits</h2>
+      <form class="stack" (ngSubmit)="saveStock()">
+        <input name="nomProduit" [(ngModel)]="stockForm.nomProduit" placeholder="Produit" required minlength="3">
+        <input type="number" name="quantiteDisponible" [(ngModel)]="stockForm.quantiteDisponible" placeholder="Quantite disponible" required min="0">
+        <input type="number" name="quantiteRetournee" [(ngModel)]="stockForm.quantiteRetournee" placeholder="Quantite retournee" required min="0">
+        <button type="submit">{{ stockForm.id ? 'Modifier le stock' : 'Ajouter au stock' }}</button>
+      </form>
+      <div class="table-wrap compact-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Disponible</th>
+              <th>Retours</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let stock of stocks">
+              <td>{{ stock.nomProduit }}</td>
+              <td>{{ stock.quantiteDisponible }}</td>
+              <td>{{ stock.quantiteRetournee }}</td>
+              <td class="actions">
+                <button type="button" (click)="editStock(stock)">Editer</button>
+                <button type="button" class="danger" (click)="deleteStock(stock)">Supprimer</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="panel">
       <h2>Non-conformites</h2>
       <form class="stack" (ngSubmit)="createNonConformite()">
+        <select name="retourNc" [(ngModel)]="nonConformiteForm.retourId">
+          <option [ngValue]="null">Retour concerne</option>
+          <option *ngFor="let retour of retours" [ngValue]="retour.id">#{{ retour.id }} - {{ retour.produit }}</option>
+        </select>
         <textarea name="description" [(ngModel)]="nonConformiteForm.description" placeholder="Description" required minlength="5"></textarea>
         <select name="gravite" [(ngModel)]="nonConformiteForm.gravite">
           <option value="MINEURE">MINEURE</option>
+          <option value="FAIBLE">FAIBLE</option>
           <option value="MOYENNE">MOYENNE</option>
+          <option value="ELEVEE">ELEVEE</option>
           <option value="CRITIQUE">CRITIQUE</option>
         </select>
         <input type="date" name="dateNc" [(ngModel)]="nonConformiteForm.date" required>
@@ -80,14 +132,17 @@
       </form>
       <ul class="list">
         <li *ngFor="let item of nonConformites">
-          <strong>{{ item.gravite }}</strong>
+          <strong>{{ item.gravite }} - {{ item.produitRetour || 'Produit non lie' }}</strong>
           <span>{{ item.description }}</span>
+          <button type="button" class="danger inline" (click)="deleteNonConformite(item)">Supprimer</button>
         </li>
       </ul>
     </article>
+  </section>
 
+  <section class="grid">
     <article class="panel">
-      <h2>Utilisateurs</h2>
+      <h2>Utilisateurs et acteurs</h2>
       <form class="stack" (ngSubmit)="createUtilisateur()">
         <input name="nom" [(ngModel)]="utilisateurForm.nom" placeholder="Nom" required minlength="3">
         <input type="email" name="email" [(ngModel)]="utilisateurForm.email" placeholder="Email" required>
@@ -103,6 +158,31 @@
         <li *ngFor="let user of utilisateurs">
           <strong>{{ user.role }}</strong>
           <span>{{ user.nom }} - {{ user.email }}</span>
+          <button type="button" class="danger inline" (click)="deleteUtilisateur(user)">Supprimer</button>
+        </li>
+      </ul>
+    </article>
+
+    <article class="panel">
+      <h2>Historique des retours</h2>
+      <form class="stack" (ngSubmit)="createHistorique()">
+        <select name="retourHistorique" [(ngModel)]="historiqueForm.retourId">
+          <option [ngValue]="null">Retour concerne</option>
+          <option *ngFor="let retour of retours" [ngValue]="retour.id">#{{ retour.id }} - {{ retour.produit }}</option>
+        </select>
+        <select name="employeHistorique" [(ngModel)]="historiqueForm.employeId">
+          <option [ngValue]="null">Employe / qualite</option>
+          <option *ngFor="let employe of employesQualite" [ngValue]="employe.id">{{ employe.nom }} - {{ employe.role }}</option>
+        </select>
+        <input name="action" [(ngModel)]="historiqueForm.action" placeholder="Action realisee" required minlength="5">
+        <input type="date" name="dateHistorique" [(ngModel)]="historiqueForm.date" required>
+        <button type="submit">Historiser</button>
+      </form>
+      <ul class="list">
+        <li *ngFor="let item of historiques">
+          <strong>{{ item.date }} - {{ item.produitRetour || 'Retour non lie' }}</strong>
+          <span>{{ item.action }}</span>
+          <small>{{ item.nomEmploye || 'Systeme' }}</small>
         </li>
       </ul>
     </article>

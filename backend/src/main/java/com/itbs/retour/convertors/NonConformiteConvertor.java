@@ -16,7 +16,10 @@ public class NonConformiteConvertor {
 
     public NonConformiteDTO toDto(NonConformite nc) {
         NonConformiteDTO dto = mmapper.map(nc, NonConformiteDTO.class);
-        dto.setProduitRetour(nc.getRetour().getProduit());  // champ aplati
+        if (nc.getRetour() != null) {
+            dto.setRetourId(nc.getRetour().getId());
+            dto.setProduitRetour(nc.getRetour().getProduit());
+        }
         return dto;
     }
 

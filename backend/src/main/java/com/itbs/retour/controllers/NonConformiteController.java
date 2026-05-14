@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import com.itbs.retour.dto.NonConformiteDTO;
 import com.itbs.retour.entities.NonConformite;
 import com.itbs.retour.entities.Gravite;
+import com.itbs.retour.repositories.RetourProduitRepository;
 import com.itbs.retour.services.NonConformiteService;
 import com.itbs.retour.convertors.NonConformiteConvertor;
 
@@ -24,6 +25,9 @@ public class NonConformiteController {
 
     @Autowired
     private NonConformiteConvertor nonConformiteConvert;
+
+    @Autowired
+    private RetourProduitRepository retourRepo;
 
     @GetMapping("/nonconformites")
     @Operation(summary = "Récupérer toutes les non-conformités")
@@ -63,6 +67,10 @@ public class NonConformiteController {
         nonConformite.setDescription(nonConformiteDto.getDescription());
         nonConformite.setGravite(nonConformiteDto.getGravite());
         nonConformite.setDate(nonConformiteDto.getDate());
+        if (nonConformiteDto.getRetourId() != null) {
+            nonConformite.setRetour(retourRepo.findById(nonConformiteDto.getRetourId())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouve")));
+        }
         nonConformiteServ.signalerNonConformite(nonConformite);
         return ResponseEntity.status(HttpStatus.CREATED).body(nonConformiteConvert.toDto(nonConformite));
     }
@@ -76,6 +84,10 @@ public class NonConformiteController {
         nonConformite.setDescription(nonConformiteDto.getDescription());
         nonConformite.setGravite(nonConformiteDto.getGravite());
         nonConformite.setDate(nonConformiteDto.getDate());
+        if (nonConformiteDto.getRetourId() != null) {
+            nonConformite.setRetour(retourRepo.findById(nonConformiteDto.getRetourId())
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouve")));
+        }
         return nonConformiteServ.mettreAjourNonConformite(id, nonConformite);
     }
 

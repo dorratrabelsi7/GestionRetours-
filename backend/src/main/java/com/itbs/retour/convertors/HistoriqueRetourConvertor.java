@@ -16,8 +16,14 @@ public class HistoriqueRetourConvertor {
 
     public HistoriqueRetourDTO toDto(HistoriqueRetour h) {
         HistoriqueRetourDTO dto = mmapper.map(h, HistoriqueRetourDTO.class);
-        dto.setProduitRetour(h.getRetour().getProduit());  // champ aplati
-        dto.setNomEmploye(h.getEmploye().getNom());        // champ aplati
+        if (h.getRetour() != null) {
+            dto.setRetourId(h.getRetour().getId());
+            dto.setProduitRetour(h.getRetour().getProduit());
+        }
+        if (h.getEmploye() != null) {
+            dto.setEmployeId(h.getEmploye().getId());
+            dto.setNomEmploye(h.getEmploye().getNom());
+        }
         return dto;
     }
 

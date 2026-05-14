@@ -1,8 +1,8 @@
 # Systeme de gestion des retours produits
 
-Sujet 6 - Application web de gestion des retours produits et des non-conformites.
+Sujet 6 - Application web de gestion des retours produits, des non-conformites, de l'historique et du stock.
 
-Ce repository contient le backend Spring Boot. Le frontend Angular doit rester dans un projet separe, par exemple `gestion-retours-frontend`, puis consommer cette API via son URL Cloud Run.
+Ce repository contient le backend Spring Boot. Le frontend Angular est livre dans le dossier racine `frontend/` et consomme cette API REST.
 
 ## Technologies
 
@@ -33,16 +33,18 @@ Entites demandees par l'enonce :
 - `NonConformite` : id, description, gravite, date, retour/produit
 - `Utilisateur` : id, nom, email, role
 - `HistoriqueRetour` : id, retour, action, employe, date
+- `ProduitStock` : id, nomProduit, quantiteDisponible, quantiteRetournee
 
 Fonctionnalites presentes :
 
-- CRUD des retours, utilisateurs, non-conformites et historiques
+- CRUD des retours, utilisateurs, non-conformites, historiques et stocks
 - Suivi des retours par etat, client et periode
 - Validation/rejet des retours par le service qualite
+- Mise a jour automatique du stock lorsqu'un retour est valide
+- Historique automatique lors de la creation, validation et rejet des retours
+- 4 acteurs : `ADMIN`, `QUALITE`, `EMPLOYE`, `CLIENT`
 - Documentation Swagger/OpenAPI
 - Validation des donnees avec `@Valid`, `@NotBlank`, `@NotNull`, `@Email`, `@Size`
-
-Point restant a enrichir pour une defense plus forte : la mise a jour du stock est mentionnee dans l'enonce, mais il n'existe pas encore d'entite `Stock` ou `ProduitStock`. Actuellement le retour garde seulement le nom du produit.
 
 ## Lancement local avec Docker
 
@@ -129,20 +131,27 @@ DELETE /api/utilisateurs/delete/{id}
 GET    /api/historiques
 POST   /api/historiques/add
 DELETE /api/historiques/delete/{id}
+
+GET    /api/stocks
+GET    /api/stocks/{id}
+GET    /api/stocks/produit/{nomProduit}
+POST   /api/stocks/add
+PUT    /api/stocks/update/{id}
+DELETE /api/stocks/delete/{id}
 ```
 
-## Frontend Angular separe
+## Frontend Angular
 
-Pour respecter l'enonce, le frontend doit etre livre dans un projet Angular separe. Exemple attendu :
+Le frontend Angular est dans le dossier racine `frontend/` :
 
 ```text
-gestion-retours-frontend/
+frontend/
   src/
   angular.json
   Dockerfile
 ```
 
-Dans Angular, l'URL API doit pointer vers :
+En production, l'URL API doit pointer vers :
 
 ```text
 https://URL_CLOUD_RUN/api
