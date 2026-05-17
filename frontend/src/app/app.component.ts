@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -30,16 +31,19 @@ export class AppComponent implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   currentUser: Utilisateur | null = null;
   activeView: View = 'dashboard';
-  authMode: 'login' | 'signup' = 'login';
+  authMode: 'login' | 'signup' | 'forgot' | 'reset' = 'login';
   loading = false;
   message = '';
   showLoginPassword = false;
   showSignupPassword = false;
+  showResetPassword = false;
   showAccountPassword = false;
   private refreshTimer?: number;
 
   loginForm = { email: 'admin@gestion-retours.com', motDePasse: 'admin123' };
   signupForm: Utilisateur = { nom: '', email: '', motDePasse: '', role: 'CLIENT' };
+  forgotPasswordForm = { email: '' };
+  resetPasswordForm = { token: '', motDePasse: '', confirmation: '' };
   accountForm: Utilisateur = this.newUtilisateur();
   retourForm: RetourProduit = this.newRetour();
   nonConformiteForm: NonConformite = this.newNonConformite();
@@ -55,8 +59,13 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(private readonly api: ApiService) {}
 
   ngOnInit(): void {
+    const resetToken = new URLSearchParams(window.location.search).get('resetToken');
+    if (resetToken) {
+      this.authMode = 'reset';
+      this.resetPasswordForm.token = resetToken;
+    }
     const storedUser = localStorage.getItem('gestionRetoursUser');
-    if (storedUser) {
+    if (storedUser && !resetToken) {
       const user = JSON.parse(storedUser) as Utilisateur;
       this.currentUser = user;
       this.accountForm = this.createAccountForm(user);
@@ -256,11 +265,56 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   forgotPassword(): void {
-    if (!this.loginForm.email) {
-      this.showMessage("Saisis ton email pour recevoir le lien de reinitialisation.");
+    this.authMode = 'forgot';
+    this.forgotPasswordForm.email = this.loginForm.email;
+    this.message = '';
+  }
+
+  sendPasswordResetEmail(): void {
+    const email = this.forgotPasswordForm.email.trim();
+    if (!email) {
+      this.showMessage("Saisis ton email client pour recevoir le lien de reinitialisation.");
       return;
     }
-    this.showMessage("Si ce compte existe, un lien de reinitialisation sera envoye par email apres configuration SMTP.");
+    this.loading = true;
+    this.api.forgotPassword({ email }).subscribe({
+      next: () => {
+        this.loading = false;
+        this.showMessage("Email envoye. Verifie ta boite mail puis ouvre le lien recu.");
+      },
+      error: (error: HttpErrorResponse) => {
+        this.loading = false;
+        this.showMessage(this.errorMessage(error, "Email non envoye. Verifie que l'adresse appartient a un compte client."));
+      }
+    });
+  }
+
+  resetPassword(): void {
+    if (this.resetPasswordForm.motDePasse.length < 4) {
+      this.showMessage('Le nouveau mot de passe doit contenir au moins 4 caracteres.');
+      return;
+    }
+    if (this.resetPasswordForm.motDePasse !== this.resetPasswordForm.confirmation) {
+      this.showMessage('Les deux mots de passe ne correspondent pas.');
+      return;
+    }
+    this.loading = true;
+    this.api.resetPassword({
+      token: this.resetPasswordForm.token,
+      motDePasse: this.resetPasswordForm.motDePasse
+    }).subscribe({
+      next: () => {
+        this.loading = false;
+        this.authMode = 'login';
+        this.loginForm.motDePasse = '';
+        window.history.replaceState({}, document.title, window.location.pathname);
+        this.showMessage('Mot de passe modifie. Tu peux te connecter.');
+      },
+      error: (error: HttpErrorResponse) => {
+        this.loading = false;
+        this.showMessage(this.errorMessage(error, 'Lien invalide ou expire. Demande un nouveau lien.'));
+      }
+    });
   }
 
   logout(): void {
@@ -540,5 +594,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private showMessage(message: string): void {
     this.message = message;
+  }
+
+  private errorMessage(error: HttpErrorResponse, fallback: string): string {
+    if (typeof error.error === 'string' && error.error.trim()) return error.error;
+    if (error.error?.message) return error.error.message;
+    return fallback;
   }
 }

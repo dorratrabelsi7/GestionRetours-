@@ -673,6 +673,33 @@ th {
   color: var(--primary);
 }
 
+.back-link {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  justify-self: start;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 0;
+}
+
+.back-link:hover {
+  background: transparent;
+  color: var(--primary);
+}
+
+.form-note {
+  margin-bottom: 6px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
 .icon-button.eye {
   width: auto;
   min-width: 54px;

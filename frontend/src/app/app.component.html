@@ -493,6 +493,35 @@
         <button type="submit" class="button primary dark-login">Se connecter</button>
       </form>
 
+      <form *ngIf="authMode === 'forgot'" class="stack" (ngSubmit)="sendPasswordResetEmail()">
+        <button type="button" class="back-link" (click)="authMode = 'login'">Retour connexion</button>
+        <h2>Mot de passe oublie</h2>
+        <p class="form-note">Entrez l'email de votre compte client. Un lien de changement de mot de passe sera envoye.</p>
+        <label>Email client</label>
+        <div class="input-icon">
+          <img src="assets/email.png" alt="" aria-hidden="true">
+          <input type="email" name="forgotEmail" [(ngModel)]="forgotPasswordForm.email" placeholder="Email client" required>
+        </div>
+        <button type="submit" class="button primary dark-login" [disabled]="loading">Envoyer le lien</button>
+      </form>
+
+      <form *ngIf="authMode === 'reset'" class="stack" (ngSubmit)="resetPassword()">
+        <h2>Nouveau mot de passe</h2>
+        <p class="form-note">Choisissez un nouveau mot de passe pour votre compte client.</p>
+        <label>Nouveau mot de passe</label>
+        <div class="password-field">
+          <img class="field-icon" src="assets/verr-alt.png" alt="" aria-hidden="true">
+          <input [type]="showResetPassword ? 'text' : 'password'" name="resetPassword" [(ngModel)]="resetPasswordForm.motDePasse" placeholder="Nouveau mot de passe" required minlength="4">
+          <button type="button" class="icon-button eye" (click)="showResetPassword = !showResetPassword" aria-label="Afficher ou masquer le mot de passe">{{ showResetPassword ? 'Masquer' : 'Voir' }}</button>
+        </div>
+        <label>Confirmation</label>
+        <div class="password-field">
+          <img class="field-icon" src="assets/verr-alt.png" alt="" aria-hidden="true">
+          <input [type]="showResetPassword ? 'text' : 'password'" name="resetPasswordConfirm" [(ngModel)]="resetPasswordForm.confirmation" placeholder="Confirmer le mot de passe" required minlength="4">
+        </div>
+        <button type="submit" class="button primary dark-login" [disabled]="loading">Changer le mot de passe</button>
+      </form>
+
       <form *ngIf="authMode === 'signup'" class="stack" (ngSubmit)="signup()">
         <label>Nom utilisateur</label>
         <input name="signupName" [(ngModel)]="signupForm.nom" placeholder="Nom utilisateur" required minlength="3">

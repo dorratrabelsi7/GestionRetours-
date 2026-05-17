@@ -69,6 +69,15 @@ export interface LoginRequest {
   motDePasse: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  motDePasse: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly apiUrl = environment.apiUrl;
@@ -81,6 +90,14 @@ export class ApiService {
 
   signup(payload: Utilisateur): Observable<Utilisateur> {
     return this.http.post<Utilisateur>(`${this.apiUrl}/auth/signup`, payload);
+  }
+
+  forgotPassword(payload: ForgotPasswordRequest): Observable<string> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, payload, { responseType: 'text' });
+  }
+
+  resetPassword(payload: ResetPasswordRequest): Observable<string> {
+    return this.http.post(`${this.apiUrl}/auth/reset-password`, payload, { responseType: 'text' });
   }
 
   getRetours(): Observable<RetourProduit[]> {
