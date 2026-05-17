@@ -3,7 +3,6 @@ package com.itbs.retour.dto;
 import java.sql.Date;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import com.itbs.retour.entities.EtatTraitement;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,11 +27,9 @@ public class RetourProduitDTO {
     @Schema(description = "Quantite retournee", example = "2")
     private int quantite = 1;
 
-    @NotNull(message = "L'etat de traitement ne peut pas etre null")
     @Schema(description = "Etat du traitement", example = "EN_ATTENTE")
     private EtatTraitement etatTraitement;
 
-    @NotNull(message = "La date ne peut pas etre null")
     @Schema(description = "Date du retour", example = "2026-05-06")
     private Date date;
 

@@ -10,7 +10,7 @@ export interface RetourProduit {
   produit: string;
   raison: string;
   quantite: number;
-  etatTraitement: 'EN_ATTENTE' | 'VALIDE' | 'REJETE';
+  etatTraitement: 'EN_ATTENTE' | 'EN_COURS' | 'ACCEPTE' | 'REFUSE';
   date: string;
   nomClient?: string;
   clientId?: number | null;
@@ -20,8 +20,9 @@ export interface RetourProduit {
 export interface NonConformite {
   id?: number;
   description: string;
-  gravite: 'FAIBLE' | 'MOYENNE' | 'ELEVEE' | 'CRITIQUE' | 'MINEURE';
+  gravite: 'FAIBLE' | 'MOYENNE' | 'CRITIQUE';
   date: string;
+  cloturee?: boolean;
   produitRetour?: string;
   retourId?: number | null;
 }
@@ -31,6 +32,7 @@ export interface Utilisateur {
   nom: string;
   email: string;
   motDePasse?: string;
+  photo?: string;
   role: Role;
 }
 
@@ -49,6 +51,17 @@ export interface ProduitStock {
   nomProduit: string;
   quantiteDisponible: number;
   quantiteRetournee: number;
+}
+
+export interface Notification {
+  id?: number;
+  titre: string;
+  message: string;
+  date: string;
+  lue: boolean;
+  roleDestinataire?: Role;
+  destinataireId?: number | null;
+  nomDestinataire?: string;
 }
 
 export interface LoginRequest {
@@ -82,12 +95,20 @@ export class ApiService {
     return this.http.put(`${this.apiUrl}/retours/update/${id}`, retour, { responseType: 'text' });
   }
 
-  validateRetour(id: number): Observable<string> {
-    return this.http.put(`${this.apiUrl}/retours/valider/${id}`, null, { responseType: 'text' });
+  prendreEnChargeRetour(id: number, employeId?: number | null): Observable<string> {
+    const query = employeId ? `?employeId=${employeId}` : '';
+    return this.http.put(`${this.apiUrl}/retours/prendre-en-charge/${id}${query}`, null, { responseType: 'text' });
   }
 
-  rejectRetour(id: number): Observable<string> {
-    return this.http.put(`${this.apiUrl}/retours/rejeter/${id}`, null, { responseType: 'text' });
+  validateRetour(id: number, employeId?: number | null): Observable<string> {
+    const query = employeId ? `?employeId=${employeId}` : '';
+    return this.http.put(`${this.apiUrl}/retours/valider/${id}${query}`, null, { responseType: 'text' });
+  }
+
+  rejectRetour(id: number, commentaire: string, employeId?: number | null): Observable<string> {
+    const params = new URLSearchParams({ commentaire });
+    if (employeId) params.set('employeId', String(employeId));
+    return this.http.put(`${this.apiUrl}/retours/refuser/${id}?${params.toString()}`, null, { responseType: 'text' });
   }
 
   deleteRetour(id: number): Observable<string> {
@@ -112,6 +133,10 @@ export class ApiService {
 
   addUtilisateur(utilisateur: Utilisateur): Observable<Utilisateur> {
     return this.http.post<Utilisateur>(`${this.apiUrl}/utilisateurs/add`, utilisateur);
+  }
+
+  updateUtilisateur(id: number, utilisateur: Utilisateur): Observable<string> {
+    return this.http.put(`${this.apiUrl}/utilisateurs/update/${id}`, utilisateur, { responseType: 'text' });
   }
 
   deleteUtilisateur(id: number): Observable<string> {
@@ -140,5 +165,25 @@ export class ApiService {
 
   deleteStock(id: number): Observable<string> {
     return this.http.delete(`${this.apiUrl}/stocks/delete/${id}`, { responseType: 'text' });
+  }
+
+  getNotifications(): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.apiUrl}/notifications`);
+  }
+
+  getNotificationsUtilisateur(userId: number): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.apiUrl}/notifications/utilisateur/${userId}`);
+  }
+
+  markNotificationRead(id: number): Observable<string> {
+    return this.http.put(`${this.apiUrl}/notifications/lire/${id}`, null, { responseType: 'text' });
+  }
+
+  markAllNotificationsRead(userId: number): Observable<string> {
+    return this.http.put(`${this.apiUrl}/notifications/lire-toutes/${userId}`, null, { responseType: 'text' });
+  }
+
+  deleteNotification(id: number): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/notifications/delete/${id}`, { responseType: 'text' });
   }
 }

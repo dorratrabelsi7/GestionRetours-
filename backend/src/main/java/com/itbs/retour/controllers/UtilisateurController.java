@@ -56,6 +56,7 @@ public class UtilisateurController {
         utilisateur.setNom(utilisateurDto.getNom());
         utilisateur.setEmail(utilisateurDto.getEmail());
         utilisateur.setMotDePasse(utilisateurDto.getMotDePasse());
+        utilisateur.setPhoto(utilisateurDto.getPhoto());
         utilisateur.setRole(utilisateurDto.getRole());
         utilisateurServ.ajouterUtilisateur(utilisateur);
         return ResponseEntity.status(HttpStatus.CREATED).body(utilisateurConvert.toDto(utilisateur));
@@ -70,6 +71,7 @@ public class UtilisateurController {
         utilisateur.setNom(utilisateurDto.getNom());
         utilisateur.setEmail(utilisateurDto.getEmail());
         utilisateur.setMotDePasse(utilisateurDto.getMotDePasse());
+        utilisateur.setPhoto(utilisateurDto.getPhoto());
         utilisateur.setRole(utilisateurDto.getRole());
         return utilisateurServ.mettreAjourUtilisateur(id, utilisateur);
     }

@@ -16,6 +16,10 @@ public class Utilisateur {
     private String email;
     private String motDePasse;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String photo;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

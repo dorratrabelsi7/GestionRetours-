@@ -7,8 +7,10 @@ Fonctionnalites principales :
 - CRUD des retours produits, non-conformites, utilisateurs, historiques et stocks
 - 4 acteurs applicatifs : `ADMIN`, `QUALITE`, `EMPLOYE`, `CLIENT`
 - Enregistrement et suivi des retours avec client, quantite, etat et historique
-- Validation/rejet des retours par le service qualite
-- Mise a jour automatique du stock lorsqu'un retour est valide
+- Cycle metier des retours : `EN_ATTENTE`, `EN_COURS`, `ACCEPTE`, `REFUSE`
+- Prise en charge par `EMPLOYE`, validation/refus par `QUALITE`
+- Mise a jour automatique du stock lorsqu'un retour est accepte
+- Notifications par utilisateur et par role
 - Documentation Swagger/OpenAPI et validation Spring Validator
 
 Le repository est organise en monorepo avec deux applications separees :
@@ -70,6 +72,14 @@ Endpoints principaux :
 - Utilisateurs : `/api/utilisateurs`
 - Historiques : `/api/historiques`
 - Stock : `/api/stocks`
+- Notifications : `/api/notifications`
+
+## Roles
+
+- `CLIENT` : inscription publique, creation et suivi de ses propres retours, notifications.
+- `EMPLOYE` : consultation des retours, prise en charge, ajout d'actions, creation de non-conformites.
+- `QUALITE` : validation ou refus des retours en cours, gestion des non-conformites critiques.
+- `ADMIN` : utilisateurs, stock, historique global, notifications et supervision complete.
 
 ## Backend
 

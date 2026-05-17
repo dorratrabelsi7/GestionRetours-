@@ -75,8 +75,6 @@ public class RetourProduitController {
         retour.setProduit(retourDto.getProduit());
         retour.setRaison(retourDto.getRaison());
         retour.setQuantite(retourDto.getQuantite());
-        retour.setEtatTraitement(retourDto.getEtatTraitement());
-        retour.setDate(retourDto.getDate());
         if (retourDto.getClientId() != null) {
             retour.setClient(utilisateurRepo.findById(retourDto.getClientId())
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Client non trouve")));
@@ -99,20 +97,35 @@ public class RetourProduitController {
         return retourServ.mettreAjourRetour(id, retour);
     }
 
+    @PutMapping("/retours/prendre-en-charge/{id}")
+    @Operation(summary = "Prendre en charge un retour")
+    public ResponseEntity<String> prendreEnChargeRetour(@PathVariable int id, @RequestParam(required = false) Integer employeId) {
+        return retourServ.prendreEnChargeRetour(id, employeId);
+    }
+
     @PutMapping("/retours/valider/{id}")
     @Operation(summary = "Valider un retour")
     @ApiResponse(responseCode = "200", description = "Retour validé")
     @ApiResponse(responseCode = "404", description = "Retour non trouvé")
-    public ResponseEntity<String> validerRetour(@PathVariable int id) {
-        return retourServ.validerRetour(id);
+    public ResponseEntity<String> validerRetour(@PathVariable int id, @RequestParam(required = false) Integer employeId) {
+        return retourServ.validerRetour(id, employeId);
+    }
+
+    @PutMapping("/retours/refuser/{id}")
+    @Operation(summary = "Refuser un retour")
+    public ResponseEntity<String> refuserRetour(
+            @PathVariable int id,
+            @RequestParam String commentaire,
+            @RequestParam(required = false) Integer employeId) {
+        return retourServ.rejeterRetour(id, commentaire, employeId);
     }
 
     @PutMapping("/retours/rejeter/{id}")
     @Operation(summary = "Rejeter un retour")
     @ApiResponse(responseCode = "200", description = "Retour rejeté")
     @ApiResponse(responseCode = "404", description = "Retour non trouvé")
-    public ResponseEntity<String> rejeterRetour(@PathVariable int id) {
-        return retourServ.rejeterRetour(id);
+    public ResponseEntity<String> rejeterRetour(@PathVariable int id, @RequestParam(defaultValue = "Retour refuse par le service qualite") String commentaire) {
+        return retourServ.rejeterRetour(id, commentaire, null);
     }
 
     @DeleteMapping("/retours/delete/{id}")

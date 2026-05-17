@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api'
+  apiUrl: 'https://gestion-retours-backend-984806313426.europe-west1.run.app/api'
 };

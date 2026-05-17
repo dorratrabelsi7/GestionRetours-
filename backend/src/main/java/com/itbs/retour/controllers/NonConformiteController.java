@@ -66,13 +66,12 @@ public class NonConformiteController {
         NonConformite nonConformite = new NonConformite();
         nonConformite.setDescription(nonConformiteDto.getDescription());
         nonConformite.setGravite(nonConformiteDto.getGravite());
-        nonConformite.setDate(nonConformiteDto.getDate());
         if (nonConformiteDto.getRetourId() != null) {
             nonConformite.setRetour(retourRepo.findById(nonConformiteDto.getRetourId())
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouve")));
         }
-        nonConformiteServ.signalerNonConformite(nonConformite);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nonConformiteConvert.toDto(nonConformite));
+        NonConformite saved = nonConformiteServ.signalerNonConformite(nonConformite);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nonConformiteConvert.toDto(saved));
     }
 
     @PutMapping("/nonconformites/update/{id}")
@@ -84,6 +83,7 @@ public class NonConformiteController {
         nonConformite.setDescription(nonConformiteDto.getDescription());
         nonConformite.setGravite(nonConformiteDto.getGravite());
         nonConformite.setDate(nonConformiteDto.getDate());
+        nonConformite.setCloturee(nonConformiteDto.isCloturee());
         if (nonConformiteDto.getRetourId() != null) {
             nonConformite.setRetour(retourRepo.findById(nonConformiteDto.getRetourId())
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND, "Retour non trouve")));

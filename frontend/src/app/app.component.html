@@ -8,68 +8,144 @@
       </div>
     </div>
 
-    <nav>
-      <button type="button" [class.active]="activeView === 'dashboard'" (click)="setView('dashboard')">Tableau de bord</button>
-      <button type="button" [class.active]="activeView === 'retours'" (click)="setView('retours')">Retours</button>
-      <button type="button" *ngIf="canOpen('qualite')" [class.active]="activeView === 'qualite'" (click)="setView('qualite')">Qualite</button>
-      <button type="button" *ngIf="canOpen('stock')" [class.active]="activeView === 'stock'" (click)="setView('stock')">Stock</button>
-      <button type="button" *ngIf="canOpen('users')" [class.active]="activeView === 'users'" (click)="setView('users')">Acteurs</button>
-      <button type="button" *ngIf="canOpen('history')" [class.active]="activeView === 'history'" (click)="setView('history')">Historique</button>
+    <nav class="nav-list">
+      <button type="button" [class.active]="activeView === 'dashboard'" (click)="setView('dashboard')">
+        <span>Tableau de bord</span>
+      </button>
+      <button type="button" [class.active]="activeView === 'retours'" (click)="setView('retours')">
+        <span>{{ isClient ? 'Mes retours' : 'Retours' }}</span>
+      </button>
+      <button type="button" *ngIf="canOpen('qualite')" [class.active]="activeView === 'qualite'" (click)="setView('qualite')">
+        <span>Validation</span>
+      </button>
+      <button type="button" *ngIf="canOpen('nonconformites')" [class.active]="activeView === 'nonconformites'" (click)="setView('nonconformites')">
+        <span>Non-conformites</span>
+      </button>
+      <button type="button" *ngIf="canOpen('stock')" [class.active]="activeView === 'stock'" (click)="setView('stock')">
+        <span>Stock</span>
+      </button>
+      <button type="button" *ngIf="canOpen('users')" [class.active]="activeView === 'users'" (click)="setView('users')">
+        <span>Utilisateurs</span>
+      </button>
+      <button type="button" [class.active]="activeView === 'history'" (click)="setView('history')">
+        <span>Historique</span>
+      </button>
+      <button type="button" [class.active]="activeView === 'notifications'" (click)="setView('notifications')">
+        <span>Notifications</span>
+        <b *ngIf="unreadNotifications">{{ unreadNotifications }}</b>
+      </button>
+      <button type="button" [class.active]="activeView === 'compte'" (click)="setView('compte')">
+        <span>Mon compte</span>
+      </button>
     </nav>
 
-    <button type="button" class="ghost full" (click)="logout()">Deconnexion</button>
+    <div class="sidebar-profile">
+      <img [src]="avatarUrl(currentUser)" alt="Photo utilisateur">
+      <span>{{ currentUser.nom }}</span>
+      <small>{{ currentUser.email }}</small>
+      <button type="button" class="button secondary full" (click)="logout()">Deconnexion</button>
+    </div>
   </aside>
 
   <section class="workspace">
     <header class="topbar">
       <div>
-        <h1>{{ activeView === 'dashboard' ? 'Pilotage des retours' : activeView }}</h1>
-        <p>{{ currentUser.nom }} - {{ currentUser.email }}</p>
+        <span class="eyebrow">{{ roleLabel() }}</span>
+        <h1>{{ viewTitle() }}</h1>
+        <p>{{ roleDescription() }}</p>
       </div>
       <div class="top-actions">
-        <a href="https://gestion-retours-backend-984806313426.europe-west1.run.app/api/swagger-ui.html" target="_blank" rel="noreferrer">Swagger</a>
-        <button type="button" (click)="refresh()">Actualiser</button>
+        <a class="button secondary" href="https://gestion-retours-backend-984806313426.europe-west1.run.app/api/swagger-ui.html" target="_blank" rel="noreferrer">Swagger</a>
       </div>
     </header>
 
     <section class="status" *ngIf="message || loading">
-      <span *ngIf="loading">Chargement...</span>
+      <span *ngIf="loading">Chargement des donnees...</span>
       <span *ngIf="message">{{ message }}</span>
     </section>
 
-    <section class="metrics" *ngIf="activeView === 'dashboard'">
-      <article>
-        <span>Retours</span>
-        <strong>{{ visibleRetours.length }}</strong>
-      </article>
-      <article>
-        <span>En attente</span>
-        <strong>{{ pendingRetours.length }}</strong>
-      </article>
-      <article>
-        <span>Non-conformites</span>
-        <strong>{{ nonConformites.length }}</strong>
-      </article>
-      <article>
-        <span>Produits stock</span>
-        <strong>{{ stocks.length }}</strong>
-      </article>
-    </section>
+    <section class="dashboard" *ngIf="activeView === 'dashboard'">
+      <div class="metrics">
+        <article class="metric-card info">
+          <span>Retours visibles</span>
+          <strong>{{ visibleRetours.length }}</strong>
+        </article>
+        <article class="metric-card warning">
+          <span>En attente</span>
+          <strong>{{ pendingRetours.length }}</strong>
+        </article>
+        <article class="metric-card info">
+          <span>En cours</span>
+          <strong>{{ retoursEnCours.length }}</strong>
+        </article>
+        <article class="metric-card success">
+          <span>Acceptes</span>
+          <strong>{{ acceptedRetours.length }}</strong>
+        </article>
+        <article class="metric-card danger">
+          <span>Critiques</span>
+          <strong>{{ criticalNonConformites.length }}</strong>
+        </article>
+      </div>
 
-    <section class="panel" *ngIf="activeView === 'dashboard'">
-      <h2>Activite recente</h2>
-      <div class="timeline">
-        <div *ngFor="let item of historiques.slice(0, 8)">
-          <strong>{{ item.action }}</strong>
-          <span>{{ item.date }} - {{ item.produitRetour || 'Systeme' }}</span>
-        </div>
+      <div class="content-grid">
+        <section class="panel">
+          <div class="panel-title">
+            <div>
+              <h2>Activite recente</h2>
+              <p>Dernieres actions enregistrees dans l'historique.</p>
+            </div>
+          </div>
+          <div class="timeline">
+            <article *ngFor="let item of visibleHistoriques.slice(0, 8)">
+              <strong>{{ item.action }}</strong>
+              <span>{{ item.date }} - {{ item.produitRetour || 'Systeme' }} - {{ item.nomEmploye || 'Systeme' }}</span>
+            </article>
+            <p class="empty" *ngIf="!visibleHistoriques.length">Aucune activite pour le moment.</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">
+            <div>
+              <h2>Priorites</h2>
+              <p>Elements importants selon votre role.</p>
+            </div>
+          </div>
+          <div class="priority-list">
+            <article *ngIf="isClient">
+              <span class="badge info">Suivi</span>
+              <strong>{{ visibleRetours.length }} retour(s) declare(s)</strong>
+              <small>Consultez les notifications pour suivre les changements d'etat.</small>
+            </article>
+            <article *ngIf="isEmploye">
+              <span class="badge warning">Traitement</span>
+              <strong>{{ pendingRetours.length }} retour(s) a prendre en charge</strong>
+              <small>Les clients seront notifies quand le retour passe en cours.</small>
+            </article>
+            <article *ngIf="isQualite">
+              <span class="badge info">Validation</span>
+              <strong>{{ retoursEnCours.length }} retour(s) en cours</strong>
+              <small>Acceptez ou refusez avec un commentaire si necessaire.</small>
+            </article>
+            <article *ngIf="isAdmin">
+              <span class="badge danger">Systeme</span>
+              <strong>{{ criticalNonConformites.length }} non-conformite(s) critique(s)</strong>
+              <small>Surveillez aussi le stock et les notifications globales.</small>
+            </article>
+          </div>
+        </section>
       </div>
     </section>
 
     <section class="panel" *ngIf="activeView === 'retours'">
       <div class="panel-title">
-        <h2>{{ isClient ? 'Mes retours' : 'Gestion des retours' }}</h2>
+        <div>
+          <h2>{{ isClient ? 'Soumettre et suivre mes retours' : 'Gestion des retours produits' }}</h2>
+          <p>{{ isClient ? 'Un client voit uniquement ses propres retours.' : 'Filtrez, traitez et consultez tous les retours.' }}</p>
+        </div>
       </div>
+
       <form class="form-grid retour-form" (ngSubmit)="saveRetour()">
         <input name="produit" [(ngModel)]="retourForm.produit" placeholder="Produit" required minlength="3">
         <input name="raison" [(ngModel)]="retourForm.raison" placeholder="Raison du retour" required minlength="5">
@@ -78,14 +154,21 @@
           <option [ngValue]="null">Client</option>
           <option *ngFor="let client of clients" [ngValue]="client.id">{{ client.nom }}</option>
         </select>
-        <select name="etatTraitement" [(ngModel)]="retourForm.etatTraitement" *ngIf="!isClient">
-          <option value="EN_ATTENTE">EN_ATTENTE</option>
-          <option value="VALIDE">VALIDE</option>
-          <option value="REJETE">REJETE</option>
-        </select>
         <input type="date" name="dateRetour" [(ngModel)]="retourForm.date" required>
-        <button type="submit">{{ retourForm.id ? 'Modifier' : 'Ajouter' }}</button>
+        <button type="submit" class="button primary">{{ retourForm.id ? 'Modifier' : 'Ajouter' }}</button>
       </form>
+
+      <div class="toolbar">
+        <input name="retourSearch" [(ngModel)]="retourSearch" placeholder="Rechercher produit, client ou raison">
+        <select name="etatFilter" [(ngModel)]="etatFilter">
+          <option value="TOUS">Tous les etats</option>
+          <option value="EN_ATTENTE">EN_ATTENTE</option>
+          <option value="EN_COURS">EN_COURS</option>
+          <option value="ACCEPTE">ACCEPTE</option>
+          <option value="REFUSE">REFUSE</option>
+        </select>
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead>
@@ -94,7 +177,7 @@
               <th>Produit</th>
               <th>Client</th>
               <th>Raison</th>
-              <th>Qté</th>
+              <th>Qte</th>
               <th>Etat</th>
               <th>Date</th>
               <th>Actions</th>
@@ -102,74 +185,128 @@
           </thead>
           <tbody>
             <tr *ngFor="let retour of visibleRetours">
-              <td>{{ retour.id }}</td>
-              <td>{{ retour.produit }}</td>
+              <td>#{{ retour.id }}</td>
+              <td>
+                <div class="product-cell">
+                  <img [src]="productImage(retour.produit)" alt="Produit">
+                  <strong>{{ retour.produit }}</strong>
+                </div>
+              </td>
               <td>{{ retour.nomClient || '-' }}</td>
               <td>{{ retour.raison }}</td>
               <td>{{ retour.quantite }}</td>
-              <td><span class="badge" [class.done]="retour.etatTraitement === 'VALIDE'" [class.rejected]="retour.etatTraitement === 'REJETE'">{{ retour.etatTraitement }}</span></td>
+              <td><span class="badge" [ngClass]="statusClass(retour.etatTraitement)">{{ retour.etatTraitement }}</span></td>
               <td>{{ retour.date }}</td>
               <td class="actions">
-                <button type="button" class="ghost" (click)="editRetour(retour)">Editer</button>
-                <button type="button" class="danger" *ngIf="isAdmin" (click)="deleteRetour(retour)">Supprimer</button>
+                <button type="button" class="button secondary" (click)="editRetour(retour)">Editer</button>
+                <button type="button" class="button secondary" *ngIf="isEmploye && retour.etatTraitement === 'EN_ATTENTE'" (click)="prendreEnCharge(retour)">Prendre</button>
+                <button type="button" class="button danger" *ngIf="isAdmin" (click)="deleteRetour(retour)">Supprimer</button>
               </td>
             </tr>
           </tbody>
         </table>
+        <p class="empty" *ngIf="!visibleRetours.length">Aucun retour trouve.</p>
       </div>
     </section>
 
-    <section class="grid" *ngIf="activeView === 'qualite'">
+    <section class="content-grid" *ngIf="activeView === 'qualite'">
       <article class="panel">
-        <h2>Validation qualite</h2>
-        <div class="queue">
-          <div *ngFor="let retour of pendingRetours">
-            <div>
-              <strong>#{{ retour.id }} - {{ retour.produit }}</strong>
-              <span>{{ retour.raison }} / {{ retour.quantite }} unite(s)</span>
-            </div>
-            <div class="actions">
-              <button type="button" (click)="validateRetour(retour)">Valider</button>
-              <button type="button" class="danger" (click)="rejectRetour(retour)">Rejeter</button>
-            </div>
+        <div class="panel-title">
+          <div>
+            <h2>Retours a valider</h2>
+            <p>Seuls les retours en cours sont prets pour la validation qualite.</p>
           </div>
         </div>
+        <div class="queue">
+          <article *ngFor="let retour of retoursEnCours">
+            <div>
+              <strong>#{{ retour.id }} - {{ retour.produit }}</strong>
+              <span>{{ retour.nomClient || 'Client' }} - {{ retour.raison }} - {{ retour.quantite }} unite(s)</span>
+            </div>
+            <div class="actions">
+              <button type="button" class="button success" (click)="validateRetour(retour)">Accepter</button>
+              <button type="button" class="button danger" (click)="rejectRetour(retour)">Refuser</button>
+            </div>
+          </article>
+          <p class="empty" *ngIf="!retoursEnCours.length">Aucun retour en cours.</p>
+        </div>
+        <textarea name="refusCommentaire" [(ngModel)]="refusCommentaire" placeholder="Commentaire obligatoire pour refuser un retour"></textarea>
       </article>
+
       <article class="panel">
-        <h2>Non-conformites</h2>
-        <form class="stack" (ngSubmit)="createNonConformite()">
-          <select name="retourNc" [(ngModel)]="nonConformiteForm.retourId">
-            <option [ngValue]="null">Retour concerne</option>
-            <option *ngFor="let retour of retours" [ngValue]="retour.id">#{{ retour.id }} - {{ retour.produit }}</option>
-          </select>
-          <textarea name="description" [(ngModel)]="nonConformiteForm.description" placeholder="Description" required minlength="5"></textarea>
-          <select name="gravite" [(ngModel)]="nonConformiteForm.gravite">
-            <option value="MINEURE">MINEURE</option>
-            <option value="FAIBLE">FAIBLE</option>
-            <option value="MOYENNE">MOYENNE</option>
-            <option value="ELEVEE">ELEVEE</option>
-            <option value="CRITIQUE">CRITIQUE</option>
-          </select>
-          <input type="date" name="dateNc" [(ngModel)]="nonConformiteForm.date" required>
-          <button type="submit">Signaler</button>
-        </form>
-        <ul class="list">
-          <li *ngFor="let item of nonConformites">
-            <strong>{{ item.gravite }} - {{ item.produitRetour || 'Produit non lie' }}</strong>
-            <span>{{ item.description }}</span>
-            <button type="button" class="danger inline" (click)="deleteNonConformite(item)">Supprimer</button>
-          </li>
-        </ul>
+        <div class="panel-title">
+          <div>
+            <h2>Indicateurs qualite</h2>
+            <p>Vue rapide sur les decisions et les alertes.</p>
+          </div>
+        </div>
+        <div class="mini-metrics">
+          <article><span>Acceptes</span><strong>{{ acceptedRetours.length }}</strong></article>
+          <article><span>Refuses</span><strong>{{ refusedRetours.length }}</strong></article>
+          <article><span>Critiques</span><strong>{{ criticalNonConformites.length }}</strong></article>
+        </div>
       </article>
     </section>
 
+    <section class="panel" *ngIf="activeView === 'nonconformites'">
+      <div class="panel-title">
+        <div>
+          <h2>Non-conformites</h2>
+          <p>Signalez les problemes produit et suivez leur gravite.</p>
+        </div>
+      </div>
+
+      <form class="form-grid nc-form" (ngSubmit)="createNonConformite()">
+        <select name="retourNc" [(ngModel)]="nonConformiteForm.retourId">
+          <option [ngValue]="null">Retour concerne</option>
+          <option *ngFor="let retour of retours" [ngValue]="retour.id">#{{ retour.id }} - {{ retour.produit }}</option>
+        </select>
+        <input name="descriptionNc" [(ngModel)]="nonConformiteForm.description" placeholder="Description du probleme" required minlength="5">
+        <select name="gravite" [(ngModel)]="nonConformiteForm.gravite">
+          <option value="FAIBLE">FAIBLE</option>
+          <option value="MOYENNE">MOYENNE</option>
+          <option value="CRITIQUE">CRITIQUE</option>
+        </select>
+        <button type="submit" class="button primary">Signaler</button>
+      </form>
+
+      <div class="toolbar">
+        <select name="graviteFilter" [(ngModel)]="graviteFilter">
+          <option value="TOUTES">Toutes les gravites</option>
+          <option value="FAIBLE">FAIBLE</option>
+          <option value="MOYENNE">MOYENNE</option>
+          <option value="CRITIQUE">CRITIQUE</option>
+        </select>
+      </div>
+
+      <div class="card-grid">
+        <article class="data-card" *ngFor="let item of visibleNonConformites">
+          <div class="card-row">
+            <span class="badge" [ngClass]="graviteClass(item.gravite)">{{ item.gravite }}</span>
+            <small>{{ item.date }}</small>
+          </div>
+          <h3>{{ item.produitRetour || 'Produit non lie' }}</h3>
+          <p>{{ item.description }}</p>
+          <div class="card-row">
+            <small>{{ item.cloturee ? 'Cloturee' : 'Active' }}</small>
+            <button type="button" class="button danger" *ngIf="isAdmin || isQualite" (click)="deleteNonConformite(item)">Supprimer</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section class="panel" *ngIf="activeView === 'stock'">
-      <h2>Stock produits</h2>
+      <div class="panel-title">
+        <div>
+          <h2>Stock produits</h2>
+          <p>Vue reservee a l'administrateur.</p>
+        </div>
+      </div>
       <form class="form-grid stock-form" (ngSubmit)="saveStock()">
         <input name="nomProduit" [(ngModel)]="stockForm.nomProduit" placeholder="Produit" required minlength="3">
         <input type="number" name="quantiteDisponible" [(ngModel)]="stockForm.quantiteDisponible" placeholder="Disponible" required min="0">
-        <input type="number" name="quantiteRetournee" [(ngModel)]="stockForm.quantiteRetournee" placeholder="Retours" required min="0">
-        <button type="submit">{{ stockForm.id ? 'Modifier' : 'Ajouter' }}</button>
+        <input type="number" name="quantiteRetournee" [(ngModel)]="stockForm.quantiteRetournee" placeholder="Retours acceptes" required min="0">
+        <button type="submit" class="button primary">{{ stockForm.id ? 'Modifier' : 'Ajouter' }}</button>
       </form>
       <div class="table-wrap">
         <table>
@@ -177,18 +314,23 @@
             <tr>
               <th>Produit</th>
               <th>Disponible</th>
-              <th>Retours valides</th>
+              <th>Retours acceptes</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let stock of stocks">
-              <td>{{ stock.nomProduit }}</td>
+            <tr *ngFor="let stock of visibleStocks">
+              <td>
+                <div class="product-cell">
+                  <img [src]="productImage(stock.nomProduit)" alt="Produit">
+                  <strong>{{ stock.nomProduit }}</strong>
+                </div>
+              </td>
               <td>{{ stock.quantiteDisponible }}</td>
               <td>{{ stock.quantiteRetournee }}</td>
               <td class="actions">
-                <button type="button" class="ghost" (click)="editStock(stock)">Editer</button>
-                <button type="button" class="danger" *ngIf="isAdmin" (click)="deleteStock(stock)">Supprimer</button>
+                <button type="button" class="button secondary" (click)="editStock(stock)">Editer</button>
+                <button type="button" class="button danger" (click)="deleteStock(stock)">Supprimer</button>
               </td>
             </tr>
           </tbody>
@@ -197,32 +339,54 @@
     </section>
 
     <section class="panel" *ngIf="activeView === 'users'">
-      <h2>Acteurs</h2>
+      <div class="panel-title">
+        <div>
+          <h2>Gestion des utilisateurs</h2>
+          <p>Creation des comptes employe, qualite, admin et consultation des clients.</p>
+        </div>
+      </div>
       <form class="form-grid users-form" (ngSubmit)="createUtilisateur()">
         <input name="nom" [(ngModel)]="utilisateurForm.nom" placeholder="Nom" required minlength="3">
         <input type="email" name="email" [(ngModel)]="utilisateurForm.email" placeholder="Email" required>
         <input type="password" name="motDePasseUser" [(ngModel)]="utilisateurForm.motDePasse" placeholder="Mot de passe" required minlength="4">
         <select name="role" [(ngModel)]="utilisateurForm.role">
-          <option value="CLIENT">CLIENT</option>
           <option value="EMPLOYE">EMPLOYE</option>
           <option value="QUALITE">QUALITE</option>
           <option value="ADMIN">ADMIN</option>
+          <option value="CLIENT">CLIENT</option>
         </select>
-        <button type="submit">Ajouter</button>
+        <button type="submit" class="button primary">Ajouter</button>
       </form>
-      <div class="actor-grid">
-        <article *ngFor="let user of utilisateurs">
-          <span>{{ user.role }}</span>
-          <strong>{{ user.nom }}</strong>
-          <small>{{ user.email }}</small>
-          <button type="button" class="danger" (click)="deleteUtilisateur(user)">Supprimer</button>
+
+      <div class="toolbar">
+        <select name="roleFilter" [(ngModel)]="roleFilter">
+          <option value="TOUS">Tous les roles</option>
+          <option value="ADMIN">ADMIN</option>
+          <option value="QUALITE">QUALITE</option>
+          <option value="EMPLOYE">EMPLOYE</option>
+          <option value="CLIENT">CLIENT</option>
+        </select>
+      </div>
+
+      <div class="card-grid">
+        <article class="data-card" *ngFor="let user of visibleUsers">
+          <img class="avatar" [src]="avatarUrl(user)" alt="Photo utilisateur">
+          <span class="badge info">{{ user.role }}</span>
+          <h3>{{ user.nom }}</h3>
+          <p>{{ user.email }}</p>
+          <button type="button" class="button danger" (click)="deleteUtilisateur(user)">Supprimer</button>
         </article>
       </div>
     </section>
 
     <section class="panel" *ngIf="activeView === 'history'">
-      <h2>Historique</h2>
-      <form class="form-grid history-form" (ngSubmit)="createHistorique()">
+      <div class="panel-title">
+        <div>
+          <h2>{{ isClient ? 'Historique de mes retours' : 'Historique global' }}</h2>
+          <p>{{ isClient ? 'Actions effectuees sur vos retours.' : 'Actions effectuees par les employes et le service qualite.' }}</p>
+        </div>
+      </div>
+      <form class="form-grid history-form" *ngIf="!isClient" (ngSubmit)="createHistorique()">
         <select name="retourHistorique" [(ngModel)]="historiqueForm.retourId">
           <option [ngValue]="null">Retour concerne</option>
           <option *ngFor="let retour of retours" [ngValue]="retour.id">#{{ retour.id }} - {{ retour.produit }}</option>
@@ -233,13 +397,65 @@
         </select>
         <input name="action" [(ngModel)]="historiqueForm.action" placeholder="Action realisee" required minlength="5">
         <input type="date" name="dateHistorique" [(ngModel)]="historiqueForm.date" required>
-        <button type="submit">Historiser</button>
+        <button type="submit" class="button primary">Historiser</button>
       </form>
       <div class="timeline">
-        <div *ngFor="let item of historiques">
+        <article *ngFor="let item of visibleHistoriques">
           <strong>{{ item.action }}</strong>
           <span>{{ item.date }} - {{ item.produitRetour || 'Systeme' }} - {{ item.nomEmploye || 'Systeme' }}</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" *ngIf="activeView === 'notifications'">
+      <div class="panel-title">
+        <div>
+          <h2>Notifications</h2>
+          <p>{{ isAdmin ? 'Toutes les notifications du systeme.' : 'Vos notifications personnelles.' }}</p>
         </div>
+        <button type="button" class="button secondary" (click)="markAllNotificationsRead()">Tout marquer lu</button>
+      </div>
+      <div class="timeline">
+        <article *ngFor="let notification of filteredNotifications" [class.unread]="!notification.lue">
+          <strong>{{ notification.titre }}</strong>
+          <span>{{ notification.date }} - {{ notification.message }}</span>
+          <div class="actions">
+            <button type="button" class="button secondary" *ngIf="!notification.lue" (click)="markNotificationRead(notification)">Marquer lue</button>
+            <button type="button" class="button danger" *ngIf="isAdmin" (click)="deleteNotification(notification)">Supprimer</button>
+          </div>
+        </article>
+        <p class="empty" *ngIf="!filteredNotifications.length">Aucune notification.</p>
+      </div>
+    </section>
+
+    <section class="panel account-panel" *ngIf="activeView === 'compte'">
+      <div class="panel-title">
+        <div>
+          <h2>Modifier mon compte</h2>
+          <p>Le nom et le mot de passe sont modifiables. L'email reste verrouille.</p>
+        </div>
+      </div>
+      <div class="account-layout">
+        <div class="account-preview">
+          <img [src]="avatarUrl(currentUser)" alt="Photo utilisateur">
+          <strong>{{ currentUser.nom }}</strong>
+          <span>{{ currentUser.role }}</span>
+        </div>
+        <form class="stack" (ngSubmit)="updateAccount()">
+          <label>Nom utilisateur</label>
+          <input name="accountName" [(ngModel)]="accountForm.nom" placeholder="Nom utilisateur" required>
+          <label>Email</label>
+          <input name="accountEmail" [ngModel]="currentUser.email" disabled>
+          <label>Nouveau mot de passe</label>
+          <div class="password-field">
+            <img class="field-icon" src="assets/verr-alt.png" alt="" aria-hidden="true">
+            <input [type]="showAccountPassword ? 'text' : 'password'" name="accountPassword" [(ngModel)]="accountForm.motDePasse" placeholder="Laisser vide pour garder l'ancien">
+            <button type="button" class="icon-button eye" (click)="showAccountPassword = !showAccountPassword" aria-label="Afficher ou masquer le mot de passe">{{ showAccountPassword ? 'Masquer' : 'Voir' }}</button>
+          </div>
+          <label>Photo de profil</label>
+          <input type="file" accept="image/*" name="accountPhoto" (change)="onPhotoSelected($event)">
+          <button type="submit" class="button primary">Enregistrer</button>
+        </form>
       </div>
     </section>
   </section>
@@ -247,16 +463,12 @@
 
 <ng-template #authScreen>
   <main class="auth-page">
+    <div class="cloud cloud-one"></div>
+    <div class="cloud cloud-two"></div>
     <section class="auth-copy">
-      <span class="brand-mark">GR</span>
+      <span class="brand-mark large">GR</span>
       <h1>Gestion Retours</h1>
-      <p>Plateforme professionnelle pour declarer, traiter et suivre les retours produits, les non-conformites et les stocks.</p>
-      <div class="role-strip">
-        <span>Admin</span>
-        <span>Qualite</span>
-        <span>Employe</span>
-        <span>Client</span>
-      </div>
+      <p>Suivez vos retours produits, recevez vos notifications et gardez chaque traitement clair du depot jusqu'a la decision finale.</p>
     </section>
 
     <section class="auth-card">
@@ -266,17 +478,36 @@
       </div>
 
       <form *ngIf="authMode === 'login'" class="stack" (ngSubmit)="login()">
-        <input type="email" name="loginEmail" [(ngModel)]="loginForm.email" placeholder="Email" required>
-        <input type="password" name="loginPassword" [(ngModel)]="loginForm.motDePasse" placeholder="Mot de passe" required>
-        <button type="submit">Entrer</button>
-        <small>Admin par defaut : admin&#64;gestion-retours.com / admin123</small>
+        <label>Email</label>
+        <div class="input-icon">
+          <img src="assets/email.png" alt="" aria-hidden="true">
+          <input type="email" name="loginEmail" [(ngModel)]="loginForm.email" placeholder="Email" required>
+        </div>
+        <label>Mot de passe</label>
+        <div class="password-field">
+          <img class="field-icon" src="assets/verr-alt.png" alt="" aria-hidden="true">
+          <input [type]="showLoginPassword ? 'text' : 'password'" name="loginPassword" [(ngModel)]="loginForm.motDePasse" placeholder="Mot de passe" required>
+          <button type="button" class="icon-button eye" (click)="showLoginPassword = !showLoginPassword" aria-label="Afficher ou masquer le mot de passe">{{ showLoginPassword ? 'Masquer' : 'Voir' }}</button>
+        </div>
+        <button type="button" class="forgot-link" (click)="forgotPassword()">Mot de passe oublie ?</button>
+        <button type="submit" class="button primary dark-login">Se connecter</button>
       </form>
 
       <form *ngIf="authMode === 'signup'" class="stack" (ngSubmit)="signup()">
-        <input name="signupName" [(ngModel)]="signupForm.nom" placeholder="Nom complet" required minlength="3">
-        <input type="email" name="signupEmail" [(ngModel)]="signupForm.email" placeholder="Email" required>
-        <input type="password" name="signupPassword" [(ngModel)]="signupForm.motDePasse" placeholder="Mot de passe" required minlength="4">
-        <button type="submit">Creer mon compte client</button>
+        <label>Nom utilisateur</label>
+        <input name="signupName" [(ngModel)]="signupForm.nom" placeholder="Nom utilisateur" required minlength="3">
+        <label>Email</label>
+        <div class="input-icon">
+          <img src="assets/email.png" alt="" aria-hidden="true">
+          <input type="email" name="signupEmail" [(ngModel)]="signupForm.email" placeholder="Email" required>
+        </div>
+        <label>Mot de passe</label>
+        <div class="password-field">
+          <img class="field-icon" src="assets/verr-alt.png" alt="" aria-hidden="true">
+          <input [type]="showSignupPassword ? 'text' : 'password'" name="signupPassword" [(ngModel)]="signupForm.motDePasse" placeholder="Mot de passe" required minlength="4">
+          <button type="button" class="icon-button eye" (click)="showSignupPassword = !showSignupPassword" aria-label="Afficher ou masquer le mot de passe">{{ showSignupPassword ? 'Masquer' : 'Voir' }}</button>
+        </div>
+        <button type="submit" class="button primary">Creer mon compte client</button>
       </form>
 
       <p class="auth-message" *ngIf="message">{{ message }}</p>

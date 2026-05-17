@@ -6,21 +6,21 @@ import lombok.Data;
 
 @Entity
 @Data
-public class NonConformite {
+public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String description;
+    private String titre;
+    private String message;
+    private Date date;
+    private boolean lue;
 
     @Enumerated(EnumType.STRING)
-    private Gravite gravite;
-
-    private Date date;
-    private boolean cloturee;
+    private Role roleDestinataire;
 
     @ManyToOne
-    @JoinColumn(name = "retour_id")
-    private RetourProduit retour;
+    @JoinColumn(name = "destinataire_id")
+    private Utilisateur destinataire;
 }

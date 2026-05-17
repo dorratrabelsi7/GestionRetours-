@@ -27,6 +27,9 @@ public class UtilisateurDTO {
     @Schema(description = "Mot de passe", example = "admin123")
     private String motDePasse;
 
+    @Schema(description = "Photo de profil en base64")
+    private String photo;
+
     @NotNull(message = "Le role ne peut pas etre null")
     @Schema(description = "Role de l'utilisateur", example = "QUALITE")
     private Role role;

@@ -22,9 +22,11 @@ public class NonConformiteDTO {
     @Schema(description = "Niveau de gravite", example = "MOYENNE")
     private Gravite gravite;
 
-    @NotNull(message = "La date ne peut pas etre null")
     @Schema(description = "Date de la non-conformite", example = "2026-05-06")
     private Date date;
+
+    @Schema(description = "Non-conformite cloturee", example = "false")
+    private boolean cloturee;
 
     @Schema(description = "Produit concerne", example = "Laptop Dell XPS")
     private String produitRetour;
