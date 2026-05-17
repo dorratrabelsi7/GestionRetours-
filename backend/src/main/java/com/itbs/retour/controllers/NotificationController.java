@@ -62,4 +62,16 @@ public class NotificationController {
     public ResponseEntity<String> supprimerNotification(@PathVariable int id) {
         return notificationServ.supprimerNotification(id);
     }
+
+    @DeleteMapping("/notifications/delete-all")
+    @Operation(summary = "Supprimer toutes les notifications")
+    public ResponseEntity<String> supprimerToutesLesNotifications() {
+        return notificationServ.supprimerToutesLesNotifications();
+    }
+
+    @DeleteMapping("/notifications/delete-utilisateur/{destinataireId}")
+    @Operation(summary = "Supprimer toutes les notifications d'un utilisateur")
+    public ResponseEntity<String> supprimerNotificationsUtilisateur(@PathVariable int destinataireId) {
+        return notificationServ.supprimerNotificationsUtilisateur(destinataireId);
+    }
 }

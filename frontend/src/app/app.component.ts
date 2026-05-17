@@ -85,7 +85,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get isQualite(): boolean {
-    return this.currentUser?.role === 'QUALITE' || this.isAdmin;
+    return this.currentUser?.role === 'QUALITE';
   }
 
   get isEmploye(): boolean {
@@ -154,12 +154,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get visibleHistoriques(): HistoriqueRetour[] {
-    const source = !this.isClient || !this.currentUser?.id ? this.historiques : this.historiques.filter((item) => {
+    if (this.isAdmin) return this.historiques;
+    if (!this.currentUser?.id) return [];
+    const source = this.isClient ? this.historiques.filter((item) => {
       const retourIds = this.retours
         .filter((retour) => retour.clientId === this.currentUser?.id)
         .map((retour) => retour.id);
       return item.retourId && retourIds.includes(item.retourId);
-    });
+    }) : this.historiques.filter((item) => item.employeId === this.currentUser?.id);
     return source;
   }
 
@@ -242,12 +244,17 @@ export class AppComponent implements OnInit, OnDestroy {
     return `https://ui-avatars.com/api/?name=${name}&background=DBEAFE&color=2563EB&bold=true&size=96`;
   }
 
-  productImage(produit?: string): string {
-    const key = (produit || '').toLowerCase();
-    if (key.includes('phone') || key.includes('tel')) return 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=160&q=70';
-    if (key.includes('laptop') || key.includes('pc') || key.includes('ordinateur')) return 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=160&q=70';
-    if (key.includes('casque') || key.includes('audio')) return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=160&q=70';
-    return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=160&q=70';
+  canDeleteRetour(retour: RetourProduit): boolean {
+    if (this.isAdmin) return true;
+    return this.isClient
+      && retour.clientId === this.currentUser?.id
+      && retour.etatTraitement === 'EN_ATTENTE';
+  }
+
+  canEditRetour(retour: RetourProduit): boolean {
+    return this.isClient
+      && retour.clientId === this.currentUser?.id
+      && retour.etatTraitement === 'EN_ATTENTE';
   }
 
   login(): void {
@@ -348,6 +355,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   saveRetour(): void {
+    if (!this.isClient) {
+      this.showMessage('Seul un client peut soumettre un retour.');
+      return;
+    }
     const retour = this.normalizeRetour(this.retourForm);
     const onSuccess = () => {
       this.retourForm = this.newRetour();
@@ -415,7 +426,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   deleteRetour(retour: RetourProduit): void {
     if (!retour.id) return;
-    this.api.deleteRetour(retour.id).subscribe({ next: () => this.refresh(), error: () => this.showMessage('Suppression impossible.') });
+    this.api.deleteRetour(retour.id).subscribe({
+      next: () => {
+        this.showMessage('Retour supprime.');
+        this.refresh();
+      },
+      error: () => this.showMessage('Suppression retour impossible.')
+    });
   }
 
   createNonConformite(): void {
@@ -447,7 +464,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   deleteUtilisateur(user: Utilisateur): void {
     if (!user.id) return;
-    this.api.deleteUtilisateur(user.id).subscribe({ next: () => this.refresh(), error: () => this.showMessage('Suppression impossible.') });
+    this.api.deleteUtilisateur(user.id).subscribe({
+      next: () => {
+        this.showMessage('Utilisateur supprime.');
+        this.refresh();
+      },
+      error: () => this.showMessage('Suppression utilisateur impossible.')
+    });
   }
 
   updateAccount(): void {
@@ -517,9 +540,18 @@ export class AppComponent implements OnInit, OnDestroy {
     this.api.markNotificationRead(notification.id).subscribe({ next: () => this.refresh(), error: () => this.showMessage('Lecture notification impossible.') });
   }
 
-  markAllNotificationsRead(): void {
+  deleteVisibleNotifications(): void {
     if (!this.currentUser?.id) return;
-    this.api.markAllNotificationsRead(this.currentUser.id).subscribe({ next: () => this.refresh(), error: () => this.showMessage('Operation notifications impossible.') });
+    const request = this.isAdmin
+      ? this.api.deleteAllNotifications()
+      : this.api.deleteNotificationsUtilisateur(this.currentUser.id);
+    request.subscribe({
+      next: () => {
+        this.showMessage('Notifications supprimees.');
+        this.refresh();
+      },
+      error: () => this.showMessage('Suppression des notifications impossible.')
+    });
   }
 
   deleteNotification(notification: Notification): void {

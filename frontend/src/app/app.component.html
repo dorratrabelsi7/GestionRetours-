@@ -146,7 +146,7 @@
         </div>
       </div>
 
-      <form class="form-grid retour-form" (ngSubmit)="saveRetour()">
+      <form class="form-grid retour-form" *ngIf="isClient" (ngSubmit)="saveRetour()">
         <input name="produit" [(ngModel)]="retourForm.produit" placeholder="Produit" required minlength="3">
         <input name="raison" [(ngModel)]="retourForm.raison" placeholder="Raison du retour" required minlength="5">
         <input type="number" name="quantite" [(ngModel)]="retourForm.quantite" placeholder="Quantite" required min="1">
@@ -173,7 +173,6 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
               <th>Produit</th>
               <th>Client</th>
               <th>Raison</th>
@@ -185,10 +184,8 @@
           </thead>
           <tbody>
             <tr *ngFor="let retour of visibleRetours">
-              <td>#{{ retour.id }}</td>
               <td>
                 <div class="product-cell">
-                  <img [src]="productImage(retour.produit)" alt="Produit">
                   <strong>{{ retour.produit }}</strong>
                 </div>
               </td>
@@ -198,9 +195,9 @@
               <td><span class="badge" [ngClass]="statusClass(retour.etatTraitement)">{{ retour.etatTraitement }}</span></td>
               <td>{{ retour.date }}</td>
               <td class="actions">
-                <button type="button" class="button secondary" (click)="editRetour(retour)">Editer</button>
+                <button type="button" class="button secondary" *ngIf="canEditRetour(retour)" (click)="editRetour(retour)">Editer</button>
                 <button type="button" class="button secondary" *ngIf="isEmploye && retour.etatTraitement === 'EN_ATTENTE'" (click)="prendreEnCharge(retour)">Prendre</button>
-                <button type="button" class="button danger" *ngIf="isAdmin" (click)="deleteRetour(retour)">Supprimer</button>
+                <button type="button" class="button danger" *ngIf="canDeleteRetour(retour)" (click)="deleteRetour(retour)">Supprimer</button>
               </td>
             </tr>
           </tbody>
@@ -220,7 +217,7 @@
         <div class="queue">
           <article *ngFor="let retour of retoursEnCours">
             <div>
-              <strong>#{{ retour.id }} - {{ retour.produit }}</strong>
+              <strong>{{ retour.produit }}</strong>
               <span>{{ retour.nomClient || 'Client' }} - {{ retour.raison }} - {{ retour.quantite }} unite(s)</span>
             </div>
             <div class="actions">
@@ -259,7 +256,7 @@
       <form class="form-grid nc-form" (ngSubmit)="createNonConformite()">
         <select name="retourNc" [(ngModel)]="nonConformiteForm.retourId">
           <option [ngValue]="null">Retour concerne</option>
-          <option *ngFor="let retour of retours" [ngValue]="retour.id">#{{ retour.id }} - {{ retour.produit }}</option>
+          <option *ngFor="let retour of retours" [ngValue]="retour.id">{{ retour.produit }} - {{ retour.nomClient || 'Client' }}</option>
         </select>
         <input name="descriptionNc" [(ngModel)]="nonConformiteForm.description" placeholder="Description du probleme" required minlength="5">
         <select name="gravite" [(ngModel)]="nonConformiteForm.gravite">
@@ -322,7 +319,6 @@
             <tr *ngFor="let stock of visibleStocks">
               <td>
                 <div class="product-cell">
-                  <img [src]="productImage(stock.nomProduit)" alt="Produit">
                   <strong>{{ stock.nomProduit }}</strong>
                 </div>
               </td>
@@ -386,19 +382,6 @@
           <p>{{ isClient ? 'Actions effectuees sur vos retours.' : 'Actions effectuees par les employes et le service qualite.' }}</p>
         </div>
       </div>
-      <form class="form-grid history-form" *ngIf="!isClient" (ngSubmit)="createHistorique()">
-        <select name="retourHistorique" [(ngModel)]="historiqueForm.retourId">
-          <option [ngValue]="null">Retour concerne</option>
-          <option *ngFor="let retour of retours" [ngValue]="retour.id">#{{ retour.id }} - {{ retour.produit }}</option>
-        </select>
-        <select name="employeHistorique" [(ngModel)]="historiqueForm.employeId">
-          <option [ngValue]="null">Employe / qualite</option>
-          <option *ngFor="let employe of employesQualite" [ngValue]="employe.id">{{ employe.nom }} - {{ employe.role }}</option>
-        </select>
-        <input name="action" [(ngModel)]="historiqueForm.action" placeholder="Action realisee" required minlength="5">
-        <input type="date" name="dateHistorique" [(ngModel)]="historiqueForm.date" required>
-        <button type="submit" class="button primary">Historiser</button>
-      </form>
       <div class="timeline">
         <article *ngFor="let item of visibleHistoriques">
           <strong>{{ item.action }}</strong>
@@ -413,7 +396,7 @@
           <h2>Notifications</h2>
           <p>{{ isAdmin ? 'Toutes les notifications du systeme.' : 'Vos notifications personnelles.' }}</p>
         </div>
-        <button type="button" class="button secondary" (click)="markAllNotificationsRead()">Tout marquer lu</button>
+        <button type="button" class="button danger" (click)="deleteVisibleNotifications()">Tout supprimer</button>
       </div>
       <div class="timeline">
         <article *ngFor="let notification of filteredNotifications" [class.unread]="!notification.lue">

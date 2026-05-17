@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import com.itbs.retour.entities.Notification;
 import com.itbs.retour.entities.Role;
@@ -78,6 +79,18 @@ public class NotificationService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification non trouvee avec l'id : " + id));
         notificationRepo.delete(notification);
         return ResponseEntity.ok("Notification supprimee avec succes");
+    }
+
+    @Transactional
+    public ResponseEntity<String> supprimerToutesLesNotifications() {
+        notificationRepo.deleteAll();
+        return ResponseEntity.ok("Toutes les notifications ont ete supprimees");
+    }
+
+    @Transactional
+    public ResponseEntity<String> supprimerNotificationsUtilisateur(int destinataireId) {
+        notificationRepo.deleteByDestinataireId(destinataireId);
+        return ResponseEntity.ok("Notifications supprimees avec succes");
     }
 
     private Notification creerNotification(String titre, String message) {

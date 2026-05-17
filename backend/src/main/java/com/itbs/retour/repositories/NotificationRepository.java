@@ -10,4 +10,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     List<Notification> findByRoleDestinataire(Role roleDestinataire);
     long countByDestinataireIdAndLueFalse(int destinataireId);
     long countByRoleDestinataireAndLueFalse(Role roleDestinataire);
+    void deleteByDestinataireId(int destinataireId);
 }

@@ -9,4 +9,5 @@ public interface HistoriqueRetourRepository extends JpaRepository<HistoriqueReto
     List<HistoriqueRetour> findByRetourId(int retourId);
     List<HistoriqueRetour> findByEmployeId(int employeId);
     List<HistoriqueRetour> findByDateBetween(Date dateDebut, Date dateFin);
+    void deleteByRetourId(int retourId);
 }

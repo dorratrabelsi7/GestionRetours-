@@ -200,6 +200,14 @@ export class ApiService {
     return this.http.put(`${this.apiUrl}/notifications/lire-toutes/${userId}`, null, { responseType: 'text' });
   }
 
+  deleteAllNotifications(): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/notifications/delete-all`, { responseType: 'text' });
+  }
+
+  deleteNotificationsUtilisateur(userId: number): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/notifications/delete-utilisateur/${userId}`, { responseType: 'text' });
+  }
+
   deleteNotification(id: number): Observable<string> {
     return this.http.delete(`${this.apiUrl}/notifications/delete/${id}`, { responseType: 'text' });
   }

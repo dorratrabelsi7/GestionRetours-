@@ -8,4 +8,5 @@ import com.itbs.retour.entities.Gravite;
 public interface NonConformiteRepository extends JpaRepository<NonConformite, Integer> {
     List<NonConformite> findByGravite(Gravite gravite);
     List<NonConformite> findByRetourId(int retourId);
+    void deleteByRetourId(int retourId);
 }

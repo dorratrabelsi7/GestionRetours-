@@ -14,6 +14,7 @@ import com.itbs.retour.entities.RetourProduit;
 import com.itbs.retour.entities.Role;
 import com.itbs.retour.entities.Utilisateur;
 import com.itbs.retour.repositories.HistoriqueRetourRepository;
+import com.itbs.retour.repositories.NonConformiteRepository;
 import com.itbs.retour.repositories.RetourProduitRepository;
 import com.itbs.retour.repositories.UtilisateurRepository;
 
@@ -28,6 +29,9 @@ public class RetourProduitService {
 
     @Autowired
     private HistoriqueRetourRepository historiqueRepo;
+
+    @Autowired
+    private NonConformiteRepository nonConformiteRepo;
 
     @Autowired
     private UtilisateurRepository utilisateurRepo;
@@ -69,8 +73,11 @@ public class RetourProduitService {
         return saved;
     }
 
+    @Transactional
     public ResponseEntity<String> supprimerRetour(int id) {
         RetourProduit retour = trouverRetourParId(id);
+        historiqueRepo.deleteByRetourId(id);
+        nonConformiteRepo.deleteByRetourId(id);
         retourRepo.delete(retour);
         return ResponseEntity.ok("Retour supprime avec succes");
     }

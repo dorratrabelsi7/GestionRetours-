@@ -8,4 +8,5 @@ import com.itbs.retour.entities.Utilisateur;
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Integer> {
     Optional<PasswordResetToken> findByToken(String token);
     void deleteByUtilisateurAndUsedFalse(Utilisateur utilisateur);
+    void deleteByUtilisateur(Utilisateur utilisateur);
 }
