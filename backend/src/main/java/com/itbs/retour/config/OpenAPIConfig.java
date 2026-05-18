@@ -26,7 +26,7 @@ public class OpenAPIConfig {
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
                 .addServersItem(new Server()
-                        .url("http://localhost:8080")
+                        .url("/api")
                         .description("Serveur local"))
                 .addServersItem(new Server()
                         .url("https://api.gestion-retours.com")

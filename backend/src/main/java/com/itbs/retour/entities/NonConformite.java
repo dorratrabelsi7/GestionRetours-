@@ -18,7 +18,7 @@ public class NonConformite {
     private Gravite gravite;
 
     private Date date;
-    private boolean cloturee;
+    private boolean cloturee; // Indique si le problème est résolu ou non.
 
     @ManyToOne
     @JoinColumn(name = "retour_id")

@@ -7,27 +7,27 @@ import lombok.Data;
 
 @Data
 public class NotificationDTO {
-    @Schema(description = "ID de la notification", example = "1")
+    @Schema(description = "ID de la notification")
     private int id;
 
-    @Schema(description = "Titre de la notification", example = "Retour accepte")
+    @Schema(description = "Titre de la notification")
     private String titre;
 
-    @Schema(description = "Message de la notification", example = "Votre retour a ete accepte")
+    @Schema(description = "Message de la notification")
     private String message;
 
-    @Schema(description = "Date de la notification", example = "2026-05-17")
+    @Schema(description = "Date de la notification")
     private Date date;
 
-    @Schema(description = "Notification lue", example = "false")
+    @Schema(description = "Notification lue")
     private boolean lue;
 
-    @Schema(description = "Role destinataire", example = "CLIENT")
+    @Schema(description = "Role destinataire")
     private Role roleDestinataire;
 
-    @Schema(description = "ID du destinataire", example = "1")
+    @Schema(description = "ID du destinataire")
     private Integer destinataireId;
 
-    @Schema(description = "Nom du destinataire", example = "Jean Dupont")
+    @Schema(description = "Nom du destinataire")
     private String nomDestinataire;
 }
